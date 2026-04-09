@@ -7,28 +7,18 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule }     from '@angular/material/input';
 import { MatSelectModule }    from '@angular/material/select';
 import { MatSnackBar }        from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AppStateService }    from '../../core/services/app-state.service';
+import { ApiService }         from '../../core/services/api.service';
+import { ImageService }       from '../../core/services/image.service';
+import { CAT_ACCENT } from '../../core/constants/constants';
 import { Producto, RecetaItem } from '../../core/models/models';
-
-const CAT_ACCENT = [
-  { bar:'bg-amber-500', ring:'border-amber-500/40' },
-  { bar:'bg-orange-500',ring:'border-orange-500/40' },
-  { bar:'bg-red-500',   ring:'border-red-500/40' },
-  { bar:'bg-yellow-500',ring:'border-yellow-500/40' },
-  { bar:'bg-violet-500',ring:'border-violet-500/40' },
-  { bar:'bg-blue-500',  ring:'border-blue-500/40' },
-  { bar:'bg-pink-500',  ring:'border-pink-500/40' },
-  { bar:'bg-teal-500',  ring:'border-teal-500/40' },
-];
-const CAT_ICONS: Record<string,string> = {
-  'Sánguches':'🥪','Tacos':'🌮','Enchiladas':'🌯','Papas':'🍟','Combos':'🍱','Bebidas':'🥤'
-};
 
 @Component({
   selector: 'ep-productos',
   standalone: true,
   imports: [CommonModule, DecimalPipe, FormsModule, MatButtonModule, MatIconModule,
-            MatFormFieldModule, MatInputModule, MatSelectModule],
+            MatFormFieldModule, MatInputModule, MatSelectModule, MatProgressSpinnerModule],
   template: `
     <div class="space-y-6 animate-slide-up">
 
@@ -55,7 +45,7 @@ const CAT_ICONS: Record<string,string> = {
         @for (cat of store.categorias(); track cat; let i = $index) {
           <button class="px-3 py-1 text-xs font-black tracking-wider rounded-sm border transition-all"
             [ngClass]="catFilter === cat ? accent(i).bar + ' border-transparent text-stone-900' : 'border-stone-700 text-stone-400 hover:border-amber-500'"
-            (click)="catFilter = cat">{{ catIcon(cat) }} {{ cat }}</button>
+            (click)="catFilter = cat"><mat-icon class="!text-xs">restaurant_menu</mat-icon> {{ cat }}</button>
         }
       </div>
 
@@ -64,8 +54,17 @@ const CAT_ICONS: Record<string,string> = {
         @for (prod of filteredProds(); track prod.id) {
           <div class="ep-card overflow-hidden border hover:border-amber-500/40 transition-all group" [ngClass]="accent(catIdx(prod.cat)).ring">
             <div class="h-1.5" [ngClass]="accent(catIdx(prod.cat)).bar"></div>
+            
+            <!-- Imagen del producto -->
+            <div class="relative w-full h-32 bg-stone-800 flex items-center justify-center overflow-hidden">
+              @if (prod.imagenUrl) {
+                <img [src]="prod.imagenUrl" alt="{{ prod.nombre }}" class="w-full h-full object-cover">
+              } @else {
+                <mat-icon class="!text-5xl text-stone-600">image</mat-icon>
+              }
+            </div>
+
             <div class="p-4">
-              <div class="text-2xl mb-2">{{ catIcon(prod.cat) }}</div>
               <div class="flex justify-between items-start mb-1">
                 <h3 class="text-stone-200 font-medium text-sm leading-snug flex-1">{{ prod.nombre }}</h3>
                 <span class="text-amber-400 font-display text-2xl ml-2">S/ {{ prod.precio }}</span>
@@ -116,6 +115,42 @@ const CAT_ICONS: Record<string,string> = {
                 <mat-label>Nombre del producto</mat-label>
                 <input matInput [(ngModel)]="form.nombre" />
               </mat-form-field>
+
+              <!-- Upload de imagen -->
+              <div class="col-span-2">
+                <div class="text-stone-400 font-black text-xs tracking-widest mb-2">IMAGEN DEL PRODUCTO</div>
+                <div class="ep-card p-4 border-2 border-dashed border-stone-700 hover:border-amber-500/50 transition-colors">
+                  <!-- Preview de imagen -->
+                  @if (imagePreview() || form.imagenUrl) {
+                    <div class="relative w-full h-48 bg-stone-800 rounded-sm overflow-hidden mb-3">
+                      <img [src]="imagePreview() || form.imagenUrl" alt="Preview" class="w-full h-full object-cover">
+                      <button type="button" mat-icon-button class="absolute top-2 right-2 bg-red-600/80 hover:bg-red-700 text-white !w-8 !h-8"
+                        (click)="clearImage()">
+                        <mat-icon class="!text-sm">close</mat-icon>
+                      </button>
+                    </div>
+                  }
+                  
+                  <!-- Input file -->
+                  <div class="flex items-center justify-center">
+                    @if (!uploadingImage()) {
+                      <label class="cursor-pointer flex items-center gap-2 text-amber-500 hover:text-amber-400">
+                        <mat-icon>cloud_upload</mat-icon>
+                        <span>Seleccionar imagen</span>
+                        <input type="file" #fileInput accept="image/*" hidden
+                          (change)="onImageSelected($event)" />
+                      </label>
+                    } @else {
+                      <div class="flex items-center gap-2 text-amber-500">
+                        <mat-spinner diameter="20" class="[&>div]:h-5 [&>div]:w-5"></mat-spinner>
+                        <span>Subiendo imagen...</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="text-stone-600 text-xs text-center mt-2">JPG, PNG o GIF (máx 5MB)</div>
+                </div>
+              </div>
+
               <mat-form-field appearance="outline">
                 <mat-label>Categoría</mat-label>
                 <mat-select [(ngModel)]="form.cat">
@@ -195,6 +230,8 @@ const CAT_ICONS: Record<string,string> = {
 })
 export class ProductosComponent {
   store = inject(AppStateService);
+  private api = inject(ApiService);
+  private imgService = inject(ImageService);
   private snack = inject(MatSnackBar);
 
   catFilter   = '';
@@ -203,10 +240,15 @@ export class ProductosComponent {
   editItem    = signal<Producto | null>(null);
   editCats: string[] = [];
 
+  // ── Imagen
+  imagePreview = signal<string | null>(null);
+  imageFile: File | null = null;
+  uploadingImage = signal(false);
+
   form: Partial<Producto> & { receta: RecetaItem[] } = this.emptyForm();
 
   emptyForm() {
-    return { nombre: '', cat: this.store.categorias()[0] ?? '', precio: 0, receta: [] };
+    return { nombre: '', cat: this.store.categorias()[0] ?? '', precio: 0, receta: [], imagenUrl: '' };
   }
 
   filteredProds = computed(() =>
@@ -215,7 +257,6 @@ export class ProductosComponent {
 
   catIdx(cat: string) { return this.store.categorias().indexOf(cat); }
   accent(i: number)   { return CAT_ACCENT[i % CAT_ACCENT.length] ?? CAT_ACCENT[0]; }
-  catIcon(cat: string){ return CAT_ICONS[cat] ?? '🍽'; }
   insNombre(id: number){ return this.store.insumos().find(i => i.id === id)?.nombre ?? '—'; }
   insUnidad(id: number){ return this.store.insumos().find(i => i.id === id)?.unidad ?? ''; }
 
@@ -230,26 +271,91 @@ export class ProductosComponent {
     return p.precio > 0 ? ((p.precio - c) / p.precio) * 100 : 0;
   }
 
+  // ── Manejo de imágenes
+  onImageSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    // Validar con servicio
+    const validation = this.imgService.validateImage(file);
+    if (!validation.valid) {
+      this.snack.open(`❌ ${validation.error}`, 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    this.imageFile = file;
+
+    // Generar preview
+    this.imgService.generatePreview(file).then(preview => {
+      this.imagePreview.set(preview);
+    }).catch(err => {
+      console.error('Error generating preview:', err);
+      this.snack.open('❌ Error al procesar la imagen', 'Cerrar', { duration: 3000 });
+    });
+  }
+
+  clearImage() {
+    this.imageFile = null;
+    this.imagePreview.set(null);
+    this.form.imagenUrl = '';
+  }
+
+  async uploadImage(): Promise<string | null> {
+    if (!this.imageFile) return this.form.imagenUrl || null;
+
+    this.uploadingImage.set(true);
+    try {
+      const response = await this.api.uploadProductImage(this.imageFile).toPromise();
+      this.uploadingImage.set(false);
+      return response?.url || null;
+    } catch (error) {
+      this.uploadingImage.set(false);
+      console.error('Error uploading image:', error);
+      this.snack.open('❌ Error al subir la imagen', 'Cerrar', { duration: 3000 });
+      return null;
+    }
+  }
+
   openForm(p?: Producto) {
     this.editItem.set(p ?? null);
     this.form = p ? { ...p, receta: p.receta.map(r => ({ ...r })) } : this.emptyForm();
+    this.imageFile = null;
+    this.imagePreview.set(null);
     this.showForm.set(true);
   }
 
   addReceta()     { this.form.receta = [...this.form.receta, { ins_id: 1, cant: 0 }]; }
   removeReceta(i: number) { this.form.receta = this.form.receta.filter((_,idx) => idx !== i); }
 
-  saveProducto() {
+  async saveProducto() {
+    if (!this.form.nombre?.trim() || this.form.precio! <= 0) {
+      this.snack.open('❌ Completa nombre y precio', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    // Upload imagen si hay nueva
+    let imagenUrl = this.form.imagenUrl;
+    if (this.imageFile) {
+      imagenUrl = await this.uploadImage();
+    }
+
     const prods = this.store.productos();
+    const productoData: Producto = {
+      ...this.form as Producto,
+      imagenUrl: imagenUrl || undefined,
+      id: this.editItem()?.id || this.store.nextId(prods)
+    };
+
     if (this.editItem()) {
-      this.store.update({ productos: prods.map(p => p.id === this.editItem()!.id ? { ...p, ...this.form } as Producto : p) });
-      this.snack.open('Producto actualizado', '', { duration: 2000 });
+      this.store.update({ productos: prods.map(p => p.id === this.editItem()!.id ? productoData : p) });
+      this.snack.open('✅ Producto actualizado', '', { duration: 2000 });
     } else {
-      const nuevo: Producto = { ...this.form as Producto, id: this.store.nextId(prods) };
-      this.store.update({ productos: [...prods, nuevo] });
-      this.snack.open('Producto creado', '', { duration: 2000 });
+      this.store.update({ productos: [...prods, productoData] });
+      this.snack.open('✅ Producto creado', '', { duration: 2000 });
     }
     this.showForm.set(false);
+    this.clearImage();
   }
 
   deleteProd(p: Producto) {

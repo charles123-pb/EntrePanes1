@@ -29,6 +29,8 @@ export interface Producto {
   cat: string;
   precio: number;
   receta: RecetaItem[];
+  imagen?: string;
+  imagenUrl?: string;
 }
 
 export interface VentaItem {

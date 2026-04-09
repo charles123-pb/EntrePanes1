@@ -30,68 +30,17 @@ export const MESES = [
   'Julio','Agosto','Setiembre','Octubre','Noviembre','Diciembre'
 ];
 
-const PROVEEDORES_0: Proveedor[] = [
-  { id:1, nombre:'San Fernando',       ruc:'20100154308', telefono:'01-3150800', email:'ventas@sanfernando.com.pe' },
-  { id:2, nombre:'Metro Supermercado', ruc:'20492960268', telefono:'01-6115555', email:'' },
-  { id:3, nombre:'Panadería Don José', ruc:'',            telefono:'999888777',  email:'' },
-  { id:4, nombre:'Mercado Jesús María',ruc:'',            telefono:'01-4720000', email:'' },
-  { id:5, nombre:'Lindley',            ruc:'20100043140', telefono:'01-6190000', email:'lindley@arca.com' },
-];
-
-const INSUMOS_0: Insumo[] = [
-  { id:1,  nombre:'Pollo pechuga',     unidad:'kg',    stock:10,  stock_min:3,   costo:14.50, prov_id:1 },
-  { id:2,  nombre:'Carne molida',      unidad:'kg',    stock:5,   stock_min:2,   costo:18.00, prov_id:2 },
-  { id:3,  nombre:'Pan hamburguesa',   unidad:'unid.', stock:100, stock_min:30,  costo:0.60,  prov_id:3 },
-  { id:4,  nombre:'Tortilla de trigo', unidad:'unid.', stock:50,  stock_min:15,  costo:0.80,  prov_id:3 },
-  { id:5,  nombre:'Tomate',            unidad:'kg',    stock:4,   stock_min:2,   costo:3.00,  prov_id:4 },
-  { id:6,  nombre:'Lechuga',           unidad:'kg',    stock:2,   stock_min:1,   costo:2.50,  prov_id:4 },
-  { id:7,  nombre:'Papa amarilla',     unidad:'kg',    stock:15,  stock_min:5,   costo:2.50,  prov_id:4 },
-  { id:8,  nombre:'Mayonesa',          unidad:'kg',    stock:3,   stock_min:1,   costo:9.00,  prov_id:2 },
-  { id:9,  nombre:'Ketchup',           unidad:'kg',    stock:3,   stock_min:1,   costo:7.50,  prov_id:2 },
-  { id:10, nombre:'Crema de ají',      unidad:'kg',    stock:1.5, stock_min:0.5, costo:15.00, prov_id:2 },
-  { id:11, nombre:'Queso fundido',     unidad:'kg',    stock:3,   stock_min:1,   costo:22.00, prov_id:2 },
-  { id:12, nombre:'Inca Kola 500ml',   unidad:'unid.', stock:48,  stock_min:12,  costo:2.50,  prov_id:5 },
-  { id:13, nombre:'Coca Cola 500ml',   unidad:'unid.', stock:36,  stock_min:12,  costo:2.50,  prov_id:5 },
-  { id:14, nombre:'Cebolla roja',      unidad:'kg',    stock:0.3, stock_min:1,   costo:2.00,  prov_id:4 },
-  { id:15, nombre:'Aceite vegetal',    unidad:'L',     stock:5,   stock_min:2,   costo:6.50,  prov_id:2 },
-];
-
-const PRODUCTOS_0: Producto[] = [
-  { id:1, nombre:'Sánguche de Pollo', cat:'Sánguches', precio:27, receta:[{ins_id:1,cant:0.150},{ins_id:3,cant:1},{ins_id:6,cant:0.030},{ins_id:5,cant:0.050},{ins_id:8,cant:0.030}] },
-  { id:2, nombre:'Sánguche de Carne', cat:'Sánguches', precio:32, receta:[{ins_id:2,cant:0.180},{ins_id:3,cant:1},{ins_id:6,cant:0.030},{ins_id:5,cant:0.050},{ins_id:9,cant:0.030}] },
-  { id:3, nombre:'Sánguche Mixto',    cat:'Sánguches', precio:35, receta:[{ins_id:1,cant:0.100},{ins_id:2,cant:0.100},{ins_id:3,cant:1},{ins_id:11,cant:0.030}] },
-  { id:4, nombre:'Taco de Pollo',     cat:'Tacos',     precio:28, receta:[{ins_id:1,cant:0.120},{ins_id:4,cant:2},{ins_id:14,cant:0.030},{ins_id:10,cant:0.020}] },
-  { id:5, nombre:'Taco de Carne',     cat:'Tacos',     precio:30, receta:[{ins_id:2,cant:0.150},{ins_id:4,cant:2},{ins_id:14,cant:0.030},{ins_id:10,cant:0.020}] },
-  { id:6, nombre:'Combo Sánguche+Papa', cat:'Combos',  precio:38, receta:[{ins_id:1,cant:0.150},{ins_id:3,cant:1},{ins_id:7,cant:0.200}] },
-  { id:7, nombre:'Papas Fritas',      cat:'Papas',     precio:15, receta:[{ins_id:7,cant:0.250}] },
-  { id:8, nombre:'Inca Kola',         cat:'Bebidas',   precio:5,  receta:[{ins_id:12,cant:1}] },
-  { id:9, nombre:'Coca Cola',         cat:'Bebidas',   precio:5,  receta:[{ins_id:13,cant:1}] },
-];
-
-const VENTAS_0: Venta[] = [
-  { id:1, fecha:'2025-03-05 12:30', items:[{id:1,nombre:'Sánguche de Pollo',cant:2,pu:27,sub:54},{id:2,nombre:'Inca Kola',cant:2,pu:5,sub:10}], subtotal:64, descuento:0, total:64, metodo:'efectivo', tipo_comp:'boleta', comprobante:'B001-00000001', sunat_estado:'emitido', estado:'completada', cajero:'cajero1' },
-  { id:2, fecha:'2025-03-05 13:15', items:[{id:1,nombre:'Combo Sánguche+Papa',cant:1,pu:38,sub:38}], subtotal:38, descuento:0, total:38, metodo:'yape', tipo_comp:'ticket', estado:'completada', cajero:'cajero1' },
-];
-
-const COMPRAS_0: Compra[] = [
-  { id:1, fecha:'2025-03-04', prov_id:1, total:145, comprobante:'F001-00000234', tipo_comp:'factura', en_sire:true,  tipo_proveedor:'electronico', items:[{ins_id:1,nombre:'Pollo pechuga',cant:10,pu:14.50,sub:145}] },
-  { id:2, fecha:'2025-03-03', prov_id:3, total:72,  comprobante:'0023',          tipo_comp:'ticket',  en_sire:false, tipo_proveedor:'fisico',       items:[{ins_id:3,nombre:'Pan hamburguesa',cant:80,pu:0.60,sub:48},{ins_id:4,nombre:'Tortilla trigo',cant:30,pu:0.80,sub:24}] },
-];
-
-const KARDEX_0: KardexEntry[] = [
-  { id:1, fecha:'2025-03-01 08:00', ins_id:1,  tipo:'entrada', cant:10,   stock_antes:0,    stock_despues:10,   costo_u:14.50, costo_total:145.00, motivo:'Stock inicial', ref:'Compra #1', num_comp:'F001-00000234', tipo_comp:'factura' },
-  { id:2, fecha:'2025-03-05 09:15', ins_id:1,  tipo:'salida',  cant:0.15, stock_antes:10,   stock_despues:9.85, costo_u:14.50, costo_total:2.175,  motivo:'Venta #1',      ref:'Venta #1',  num_comp:'B001-00000001', tipo_comp:'boleta' },
-];
-
-const HIST_0: HistorialDeclaracion[] = [
-  { mes:1, anio:2025, ventas:8500,  baseImponible:7727.27, igv:618.18, ipm:154.55, ir:115.91, totalSunat:888.64, pagado:true, fecha_pago:'2025-02-15' },
-  { mes:2, anio:2025, ventas:9200,  baseImponible:8363.64, igv:669.09, ipm:167.27, ir:125.45, totalSunat:961.81, pagado:true, fecha_pago:'2025-03-14' },
-];
-
+// ── Estado inicial limpio sin datos de prueba
+// Todos los datos se cargarán desde la API cuando useMock: false
 const DEFAULT_STATE: AppState = {
-  proveedores: PROVEEDORES_0, insumos: INSUMOS_0, productos: PRODUCTOS_0,
-  ventas: VENTAS_0, compras: COMPRAS_0, kardex: KARDEX_0,
-  histNRUS: HIST_0, categorias: ['Sánguches','Tacos','Enchiladas','Papas','Combos','Bebidas'],
+  proveedores: [],
+  insumos: [],
+  productos: [],
+  ventas: [],
+  compras: [],
+  kardex: [],
+  histNRUS: [],
+  categorias: ['Sánguches', 'Tacos', 'Enchiladas', 'Papas', 'Combos', 'Bebidas'],
 };
 
 @Injectable({ providedIn: 'root' })
@@ -195,7 +144,7 @@ export class AppStateService {
     this._saveState();
   }
 
-  updateInsumos(insumos: typeof INSUMOS_0) {
+  updateInsumos(insumos: Insumo[]) {
     this._state.update(s => ({ ...s, insumos }));
     this._saveState();
   }

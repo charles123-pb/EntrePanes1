@@ -9,34 +9,7 @@ import { MatSelectModule }        from '@angular/material/select';
 import { MatSlideToggleModule }   from '@angular/material/slide-toggle';
 import { MatSnackBar }            from '@angular/material/snack-bar';
 import { AppStateService }        from '../../core/services/app-state.service';
-
-type UserRole = 'admin' | 'cajero' | 'cocinero';
-
-interface AppUser {
-  id: number;
-  nombre: string;
-  usuario: string;
-  rol: UserRole;
-  activo: boolean;
-  pin: string;
-}
-
-const USERS_KEY = 'entrepanes_users';
-
-const USERS_DEFAULT: AppUser[] = [
-  { id:1, nombre:'Administrador',  usuario:'admin',   rol:'admin',   activo:true, pin:'0000' },
-  { id:2, nombre:'Cajero 1',       usuario:'cajero1', rol:'cajero',  activo:true, pin:'1234' },
-  { id:3, nombre:'Cocinero 1',     usuario:'cocinero1',rol:'cocinero',activo:true, pin:'5678' },
-];
-
-const ROL_BADGE: Record<UserRole, string> = {
-  admin:    'bg-amber-900/60 text-amber-400',
-  cajero:   'bg-blue-900/60 text-blue-400',
-  cocinero: 'bg-orange-900/60 text-orange-400',
-};
-const ROL_ICON: Record<UserRole, string> = {
-  admin: 'admin_panel_settings', cajero: 'credit_card', cocinero: 'restaurant'
-};
+import { USERS_DEFAULT, USERS_KEY, ROL_BADGE, ROL_ICON, UserRole, AppUser } from '../../core/constants/constants';
 
 @Component({
   selector: 'ep-admin',

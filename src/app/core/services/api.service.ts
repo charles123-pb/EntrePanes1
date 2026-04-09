@@ -1,46 +1,170 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError, retry, timeout } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Proveedor, Insumo, Producto, Venta, Compra, KardexEntry } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
+  private readonly API_TIMEOUT = 30000; // 30 segundos
+  private readonly RETRY_ATTEMPTS = 2;
+
   constructor(private http: HttpClient) {}
 
-  // Proveedores
+  // ── Métodos privados de utilidad  ──
+  private handleError(error: HttpErrorResponse) {
+    console.error('API Error:', error);
+    let message = 'Error en la conexión';
+    if (error.status === 0) {
+      message = 'No se puede conectar con el servidor. Verifica que esté en línea.';
+    } else if (error.status === 404) {
+      message = 'Recurso no encontrado';
+    } else if (error.status === 500) {
+      message = 'Error interno del servidor';
+    }
+    return throwError(() => new Error(message));
+  }
+
+  private createRequest<T>(endpoint: string): Observable<T> {
+    return this.http.get<T>(`${environment.apiUrl}${endpoint}`).pipe(
+      timeout(this.API_TIMEOUT),
+      retry(this.RETRY_ATTEMPTS),
+      catchError(err => this.handleError(err))
+    );
+  }
+
+  private createPostRequest<T>(endpoint: string, body: any): Observable<T> {
+    return this.http.post<T>(`${environment.apiUrl}${endpoint}`, body).pipe(
+      timeout(this.API_TIMEOUT),
+      catchError(err => this.handleError(err))
+    );
+  }
+
+  // ── Proveedores
   proveedores(): Observable<Proveedor[]> {
     if (environment.useMock) return of([] as Proveedor[]);
-    return this.http.get<Proveedor[]>(`${environment.apiUrl}/proveedores`);
+    return this.createRequest<Proveedor[]>('/proveedores');
   }
 
-  // Insumos
+  createProveedor(proveedor: Omit<Proveedor, 'id'>): Observable<Proveedor> {
+    if (environment.useMock) return of({ ...proveedor, id: 1 } as Proveedor);
+    return this.createPostRequest<Proveedor>('/proveedores', proveedor);
+  }
+
+  updateProveedor(id: number, proveedor: Partial<Proveedor>): Observable<Proveedor> {
+    if (environment.useMock) return of({ ...proveedor, id } as Proveedor);
+    return this.http.put<Proveedor>(`${environment.apiUrl}/proveedores/${id}`, proveedor).pipe(
+      catchError(err => this.handleError(err))
+    );
+  }
+
+  deleteProveedor(id: number): Observable<void> {
+    if (environment.useMock) return of(void 0);
+    return this.http.delete<void>(`${environment.apiUrl}/proveedores/${id}`).pipe(
+      catchError(err => this.handleError(err))
+    );
+  }
+
+  // ── Insumos
   insumos(): Observable<Insumo[]> {
     if (environment.useMock) return of([] as Insumo[]);
-    return this.http.get<Insumo[]>(`${environment.apiUrl}/insumos`);
+    return this.createRequest<Insumo[]>('/insumos');
   }
 
-  // Productos
+  createInsumo(insumo: Omit<Insumo, 'id'>): Observable<Insumo> {
+    if (environment.useMock) return of({ ...insumo, id: 1 } as Insumo);
+    return this.createPostRequest<Insumo>('/insumos', insumo);
+  }
+
+  updateInsumo(id: number, insumo: Partial<Insumo>): Observable<Insumo> {
+    if (environment.useMock) return of({ ...insumo, id } as Insumo);
+    return this.http.put<Insumo>(`${environment.apiUrl}/insumos/${id}`, insumo).pipe(
+      catchError(err => this.handleError(err))
+    );
+  }
+
+  // ── Productos
   productos(): Observable<Producto[]> {
     if (environment.useMock) return of([] as Producto[]);
-    return this.http.get<Producto[]>(`${environment.apiUrl}/productos`);
+    return this.createRequest<Producto[]>('/productos');
   }
 
-  // Ventas
+  createProducto(producto: Omit<Producto, 'id'>): Observable<Producto> {
+    if (environment.useMock) return of({ ...producto, id: 1 } as Producto);
+    return this.createPostRequest<Producto>('/productos', producto);
+  }
+
+  updateProducto(id: number, producto: Partial<Producto>): Observable<Producto> {
+    if (environment.useMock) return of({ ...producto, id } as Producto);
+    return this.http.put<Producto>(`${environment.apiUrl}/productos/${id}`, producto).pipe(
+      catchError(err => this.handleError(err))
+    );
+  }
+
+  deleteProducto(id: number): Observable<void> {
+    if (environment.useMock) return of(void 0);
+    return this.http.delete<void>(`${environment.apiUrl}/productos/${id}`).pipe(
+      catchError(err => this.handleError(err))
+    );
+  }
+
+  // ── Ventas
   ventas(): Observable<Venta[]> {
     if (environment.useMock) return of([] as Venta[]);
-    return this.http.get<Venta[]>(`${environment.apiUrl}/ventas`);
+    return this.createRequest<Venta[]>('/ventas');
   }
 
-  // Compras
+  createVenta(venta: Omit<Venta, 'id'>): Observable<Venta> {
+    if (environment.useMock) return of({ ...venta, id: 1 } as Venta);
+    return this.createPostRequest<Venta>('/ventas', venta);
+  }
+
+  // ── Compras
   compras(): Observable<Compra[]> {
     if (environment.useMock) return of([] as Compra[]);
-    return this.http.get<Compra[]>(`${environment.apiUrl}/compras`);
+    return this.createRequest<Compra[]>('/compras');
   }
 
-  // Kardex
+  createCompra(compra: Omit<Compra, 'id'>): Observable<Compra> {
+    if (environment.useMock) return of({ ...compra, id: 1 } as Compra);
+    return this.createPostRequest<Compra>('/compras', compra);
+  }
+
+  // ── Kardex
   kardex(): Observable<KardexEntry[]> {
     if (environment.useMock) return of([] as KardexEntry[]);
-    return this.http.get<KardexEntry[]>(`${environment.apiUrl}/kardex`);
+    return this.createRequest<KardexEntry[]>('/kardex');
+  }
+
+  // ── Imágenes de productos
+  uploadProductImage(file: File): Observable<{ url: string; id: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'producto');
+    return this.http.post<{ url: string; id: string }>(`${environment.apiUrl}/upload`, formData).pipe(
+      timeout(this.API_TIMEOUT),
+      catchError(err => this.handleError(err))
+    );
+  }
+
+  getProductImageUrl(imageId: string): string {
+    if (!imageId) return '';
+    if (imageId.startsWith('http')) return imageId;
+    return `${environment.apiUrl}/images/productos/${imageId}`;
+  }
+
+  deleteProductImage(imageId: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/images/productos/${imageId}`).pipe(
+      catchError(err => this.handleError(err))
+    );
+  }
+
+  // ── Health check
+  healthCheck(): Observable<{ status: string }> {
+    return this.http.get<{ status: string }>(`${environment.apiUrl}/health`).pipe(
+      timeout(5000),
+      catchError(() => of({ status: 'offline' }))
+    );
   }
 }

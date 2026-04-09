@@ -10,19 +10,7 @@ import { MatTooltipModule }    from '@angular/material/tooltip';
 import { MatDividerModule }    from '@angular/material/divider';
 import { CommonModule }        from '@angular/common';
 import { AppStateService }     from '../../../core/services/app-state.service';
-import { NavItem }             from '../../../core/models/models';
-
-const NAV: NavItem[] = [
-  { route: '/dashboard',   label: 'Dashboard',    icon: 'dashboard' },
-  { route: '/ventas',      label: 'Ventas',       icon: 'shopping_cart' },
-  { route: '/caja',        label: 'Cierre Caja',  icon: 'lock' },
-  { route: '/inventario',  label: 'Inventario',   icon: 'home' },
-  { route: '/compras',     label: 'Compras',      icon: 'description' },
-  { route: '/productos',   label: 'Productos',    icon: 'star' },
-  { route: '/proveedores', label: 'Proveedores',  icon: 'group' },
-  { route: '/sunat',       label: 'SUNAT / RER',  icon: 'receipt_long' },
-  { route: '/admin',       label: 'Admin',        icon: 'admin_panel_settings' },
-];
+import { NAV }                 from '../../../core/constants/constants';
 
 @Component({
   selector: 'ep-shell',

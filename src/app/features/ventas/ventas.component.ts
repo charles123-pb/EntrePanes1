@@ -13,22 +13,8 @@ import { MatSnackBar }         from '@angular/material/snack-bar';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AppStateService }     from '../../core/services/app-state.service';
 import { PrintService }        from '../../core/services/print.service';
+import { CAT_ACCENT } from '../../core/constants/constants';
 import { Venta, VentaItem, TipoComprobante, MetodoPago } from '../../core/models/models';
-
-const CAT_ACCENT = [
-  { bar:'bg-amber-500', ring:'hover:border-amber-500' },
-  { bar:'bg-orange-500',ring:'hover:border-orange-500' },
-  { bar:'bg-red-500',   ring:'hover:border-red-500' },
-  { bar:'bg-yellow-500',ring:'hover:border-yellow-500' },
-  { bar:'bg-violet-500',ring:'hover:border-violet-500' },
-  { bar:'bg-blue-500',  ring:'hover:border-blue-500' },
-  { bar:'bg-pink-500',  ring:'hover:border-pink-500' },
-  { bar:'bg-teal-500',  ring:'hover:border-teal-500' },
-];
-
-const CAT_ICONS: Record<string,string> = {
-  'Sánguches':'🥪','Tacos':'🌮','Enchiladas':'🌯','Papas':'🍟','Combos':'🍱','Bebidas':'🥤'
-};
 
 @Component({
   selector: 'ep-ventas',
@@ -74,7 +60,7 @@ const CAT_ICONS: Record<string,string> = {
               class="px-3 py-1 text-xs font-black tracking-wider rounded-sm border transition-all whitespace-nowrap"
               [ngClass]="catFilter === cat ? accent(i).bar + ' border-transparent text-stone-900' : 'border-stone-700 text-stone-400 ' + accent(i).ring"
               (click)="catFilter = cat">
-              {{ catIcon(cat) }} {{ cat }}
+              <mat-icon class="!text-xs">restaurant_menu</mat-icon> {{ cat }}
             </button>
           }
         </div>
@@ -86,8 +72,15 @@ const CAT_ICONS: Record<string,string> = {
               class="group ep-card border hover:border-amber-500/60 text-left transition-all p-0 overflow-hidden active:scale-95"
               (click)="addItem(prod)">
               <div class="h-1 w-full" [ngClass]="accent(catIdx(prod.cat)).bar"></div>
+              <!-- Imagen del producto -->
+              <div class="relative w-full h-20 bg-stone-800 flex items-center justify-center overflow-hidden">
+                @if (prod.imagenUrl) {
+                  <img [src]="prod.imagenUrl" alt="{{ prod.nombre }}" class="w-full h-full object-cover">
+                } @else {
+                  <mat-icon class="!text-2xl text-stone-600">image</mat-icon>
+                }
+              </div>
               <div class="p-3">
-                <div class="text-lg leading-none mb-1">{{ catIcon(prod.cat) }}</div>
                 <div class="text-stone-200 text-sm font-medium leading-snug mb-2">{{ prod.nombre }}</div>
                 <div class="text-amber-400 font-display text-xl">S/ {{ prod.precio }}</div>
               </div>
@@ -312,7 +305,6 @@ export class VentasComponent {
   // Catalog helpers
   catIdx(cat: string) { return this.store.categorias().indexOf(cat); }
   accent(i: number)   { return CAT_ACCENT[i % CAT_ACCENT.length] ?? CAT_ACCENT[0]; }
-  catIcon(cat: string){ return CAT_ICONS[cat] ?? '🍽'; }
 
   // Order actions
   addItem(prod: { id:number; nombre:string; precio:number }) {
