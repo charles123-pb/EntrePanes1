@@ -1,1 +1,106 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+@use '@angular/material/core/m2' as matm2;
+
+// ── Tailwind base
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Angular Material M2 theming (using `mat.m2` namespace)
+$ep-primary: matm2.define-palette(matm2.$amber-palette, 500, 300, 700);
+$ep-accent:  matm2.define-palette(matm2.$orange-palette, 400);
+$ep-warn:    matm2.define-palette(matm2.$red-palette, 500);
+
+$ep-dark-theme: matm2.define-dark-theme(
+  $ep-primary,
+  $ep-accent,
+  $ep-warn,
+);
+
+@include mat.all-component-themes($ep-dark-theme);
+
+// ── Global reset & base
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  background-color: #0c0a09;
+  color: #e7e5e4;
+  -webkit-font-smoothing: antialiased;
+}
+
+// ── Scrollbar oscuro
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #1c1917; }
+::-webkit-scrollbar-thumb { background: #44403c; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #78716c; }
+
+// ── Material overrides para tema oscuro cálido
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-color: #1c1917;
+}
+.mat-mdc-card {
+  --mdc-elevated-card-container-color: #1c1917;
+}
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: #292524;
+  --mdc-snackbar-supporting-text-color: #e7e5e4;
+}
+.mat-mdc-table {
+  background: transparent !important;
+}
+.mat-mdc-row:hover .mat-mdc-cell {
+  background: rgba(255,255,255,0.03) !important;
+}
+.mat-mdc-header-cell {
+  background: #1c1917 !important;
+  color: #78716c !important;
+  font-size: 0.7rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+}
+.mat-mdc-cell {
+  color: #d6d3d1 !important;
+  font-size: 0.8rem !important;
+}
+.mat-mdc-form-field-subscript-wrapper { display: none; }
+
+// ── Custom utility classes
+.ep-section-title {
+  @apply font-display text-2xl tracking-widest text-amber-400 uppercase;
+}
+.ep-card {
+  @apply bg-stone-900 border border-stone-800 rounded-sm;
+}
+.ep-badge {
+  @apply inline-flex items-center px-2 py-0.5 text-xs font-black rounded-sm tracking-wider;
+}
+
+// ── Print styles
+@media print {
+  ep-shell, mat-sidenav, .no-print { display: none !important; }
+  body { background: white !important; color: black !important; }
+}
+
+// ── Animations
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out both;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.25s ease-out both;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

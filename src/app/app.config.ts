@@ -1,12 +1,16 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter } from '@angular/router';
-
-import { routes } from './app.routes';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter, withComponentInputBinding }      from '@angular/router';
+import { provideAnimationsAsync }                        from '@angular/platform-browser/animations/async';
+import { provideHttpClient }                             from '@angular/common/http';
+import { MAT_DATE_LOCALE }                               from '@angular/material/core';
+import { routes }                                        from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideBrowserGlobalErrorListeners(),
-    provideRouter(routes), provideClientHydration(withEventReplay())
-  ]
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideRouter(routes, withComponentInputBinding()),
+    provideAnimationsAsync(),
+    provideHttpClient(),
+    { provide: MAT_DATE_LOCALE, useValue: 'es-PE' },
+  ],
 };
