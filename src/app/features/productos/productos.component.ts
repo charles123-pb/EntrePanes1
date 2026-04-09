@@ -241,7 +241,7 @@ export class ProductosComponent {
   editCats: string[] = [];
 
   // ── Imagen
-  imagePreview = signal<string | null>(null);
+  imagePreview = signal<string | undefined>(undefined);
   imageFile: File | null = null;
   uploadingImage = signal(false);
 
@@ -297,23 +297,23 @@ export class ProductosComponent {
 
   clearImage() {
     this.imageFile = null;
-    this.imagePreview.set(null);
-    this.form.imagenUrl = '';
+    this.imagePreview.set(undefined);
+    this.form.imagenUrl = undefined;
   }
 
-  async uploadImage(): Promise<string | null> {
-    if (!this.imageFile) return this.form.imagenUrl || null;
+  async uploadImage(): Promise<string | undefined> {
+    if (!this.imageFile) return this.form.imagenUrl || undefined;
 
     this.uploadingImage.set(true);
     try {
       const response = await this.api.uploadProductImage(this.imageFile).toPromise();
       this.uploadingImage.set(false);
-      return response?.url || null;
+      return response?.url || undefined;
     } catch (error) {
       this.uploadingImage.set(false);
       console.error('Error uploading image:', error);
       this.snack.open('❌ Error al subir la imagen', 'Cerrar', { duration: 3000 });
-      return null;
+      return undefined;
     }
   }
 
@@ -321,7 +321,7 @@ export class ProductosComponent {
     this.editItem.set(p ?? null);
     this.form = p ? { ...p, receta: p.receta.map(r => ({ ...r })) } : this.emptyForm();
     this.imageFile = null;
-    this.imagePreview.set(null);
+    this.imagePreview.set(undefined);
     this.showForm.set(true);
   }
 
