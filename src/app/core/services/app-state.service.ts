@@ -14,8 +14,8 @@ const NUBEFACT_KEY = 'entrepanes_nubefact';
 
 const NUBEFACT_DEFAULT: NubefactConfig = {
   token: '', ruta: '', serie_boleta: 'B001', serie_factura: 'F001',
-  modo: 'demo', ruc_emisor: '10473019278',
-  razon_social: 'GRE BANESA AYALA SOTO', direccion: 'Ayacucho',
+  modo: 'demo', ruc_emisor: '',
+  razon_social: '', direccion: '',
 };
 
 // ── Constantes SUNAT 2026 Ley 31556
