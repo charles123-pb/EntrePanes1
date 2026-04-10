@@ -1,7 +1,7 @@
-import { Injectable, inject } from '@angular/core';
-import { signal } from '@angular/core';
-import { AuditLog, TipoAccion } from '../models/models';
+import { Injectable, inject, computed } from '@angular/core';
+import { AppStateService } from './app-state.service';
 import { AuthService } from './auth.service';
+import { AuditLog } from '../models/models';
 
 /**
  * Servicio de Auditoría - Registra todas las acciones importantes
@@ -9,114 +9,90 @@ import { AuthService } from './auth.service';
  */
 @Injectable({ providedIn: 'root' })
 export class AuditService {
+  private store = inject(AppStateService);
   private auth = inject(AuthService);
-  private logs = signal<AuditLog[]>([]);
-
-  constructor() {
-    this.loadLogs();
-  }
 
   /**
    * Registra una acción en el log de auditoría
    */
-  registrar(accion: TipoAccion, descripcion: string, archivoAfectado: string = '', detalles?: string) {
+  registrar(accion: string, entidad: string, entidad_id: number, detalles?: string) {
+    const logs = this.store.auditLogs();
     const usuario = this.auth.currentUser()?.nombre || 'sistema';
-    const log: AuditLog = {
-      id: this.logs().length + 1,
-      fecha: new Date().toISOString(),
+
+    const nuevoLog: AuditLog = {
+      id: this.store.nextId(logs),
+      fecha: this.store.nowStr(),
       usuario,
       accion,
-      descripcion,
-      archivo_afectado: archivoAfectado,
+      entidad,
+      entidad_id,
       detalles,
+      descripcion: '',
+      archivo_afectado: ''
     };
-    
-    this.logs.update(logs => [...logs, log]);
-    this.saveLogs();
-    console.log(`[AUDIT] ${usuario} - ${accion}: ${descripcion}`);
+
+    this.store.update({ 
+      auditLogs: [...logs, nuevoLog] 
+    });
+
+    console.log(`[AUDIT] ${usuario} - ${accion} ${entidad} #${entidad_id}`);
   }
 
   /**
-   * Obtiene todos los logs
+   * Logs del día actual
    */
-  getLogs() {
-    return this.logs();
-  }
+  logsHoy = computed(() => {
+    const today = this.store.todayStr();
+    return this.store.auditLogs()
+      .filter((l: AuditLog) => l.fecha.startsWith(today))
+      .sort((a: AuditLog, b: AuditLog) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+  });
 
   /**
-   * Obtiene logs por usuario
+   * Logs por usuario
    */
-  getLogsByUser(usuario: string) {
-    return this.logs().filter(l => l.usuario === usuario);
-  }
+  logsPorUsuario = computed(() => {
+    const usuario = this.auth.currentUser()?.nombre || '';
+    return this.store.auditLogs()
+      .filter((l: AuditLog) => l.usuario === usuario)
+      .slice(0, 50);
+  });
 
   /**
-   * Obtiene logs por tipo de acción
+   * Actividad de ventas (quién vendió qué)
    */
-  getLogsByAccion(accion: TipoAccion) {
-    return this.logs().filter(l => l.accion === accion);
-  }
+  actividadVentas = computed(() => {
+    return this.store.auditLogs()
+      .filter((l: AuditLog) => l.accion === 'VENTA' || l.accion === 'VENTA_ANULADA')
+      .slice(0, 20);
+  });
 
   /**
-   * Obtiene logs de últimas N horas
+   * Cambios de precio (auditoría de precios)
    */
-  getLogsRecientes(horas: number = 24) {
-    const ahora = new Date();
-    const hace = new Date(ahora.getTime() - horas * 60 * 60 * 1000);
-    return this.logs().filter(l => new Date(l.fecha) >= hace);
-  }
+  cambiosPrecios = computed(() => {
+    return this.store.auditLogs()
+      .filter((l: AuditLog) => l.accion === 'PRECIO_ACTUALIZADO')
+      .slice(0, 20);
+  });
 
   /**
-   * Limpia logs más antiguos que N días
-   */
-  limpiarLogsAntiguos(dias: number = 90) {
-    const limite = new Date();
-    limite.setDate(limite.getDate() - dias);
-    
-    const logsNuevos = this.logs().filter(l => new Date(l.fecha) > limite);
-    this.logs.set(logsNuevos);
-    this.saveLogs();
-  }
-
-  /**
-   * Guarda logs en localStorage
-   */
-  private saveLogs() {
-    localStorage.setItem('entrepanes_audit_logs', JSON.stringify(this.logs()));
-  }
-
-  /**
-   * Carga logs de localStorage
-   */
-  private loadLogs() {
-    try {
-      const stored = localStorage.getItem('entrepanes_audit_logs');
-      if (stored) {
-        this.logs.set(JSON.parse(stored));
-      }
-    } catch (e) {
-      console.error('Error cargando audit logs:', e);
-    }
-  }
-
-  /**
-   * Exporta logs como CSV
+   * Exportar logs a CSV
    */
   exportarCSV(): string {
-    const headers = ['Fecha', 'Usuario', 'Acción', 'Descripción', 'Archivo', 'Detalles'];
-    const rows = this.logs().map(l => [
-      new Date(l.fecha).toLocaleString('es-PE'),
+    const headers = ['Fecha', 'Usuario', 'Acción', 'Entidad', 'ID', 'Detalles'];
+    const rows = this.store.auditLogs().map((l: AuditLog) => [
+      l.fecha.slice(0, 19),
       l.usuario,
       l.accion,
-      l.descripcion,
-      l.archivo_afectado,
+      l.entidad,
+      l.entidad_id.toString(),
       l.detalles || ''
     ]);
 
-    const csv = [
-      headers.join(','),
-      ...rows.map(r => r.map(c => `"${c}"`).join(','))
-    ].join('\n');
+    const csv = [headers, ...rows]
+      .map((row: string[]) => row.map((col: string) => `"${col}"`).join(','))
+      .join('\n');
 
     return csv;
   }

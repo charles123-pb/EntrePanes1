@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { signal } from '@angular/core';
+import { Injectable, inject, computed } from '@angular/core';
+import { AppStateService } from './app-state.service';
 import { Cliente } from '../models/models';
 
 /**
@@ -7,47 +7,124 @@ import { Cliente } from '../models/models';
  */
 @Injectable({ providedIn: 'root' })
 export class ClientesService {
-  private clientes = signal<Cliente[]>([]);
-
-  constructor() {
-    this.loadClientes();
-  }
+  private store = inject(AppStateService);
 
   /**
-   * Obtiene todos los clientes
+   * Obtener cliente por documento o crear nuevo
    */
-  getClientes() {
-    return this.clientes();
-  }
-
-  /**
-   * Obtiene cliente por ID
-   */
-  getClienteById(id: number) {
-    return this.clientes().find(c => c.id === id);
-  }
-
-  /**
-   * Obtiene cliente por DNI/RUC
-   */
-  getClienteByDocumento(documento: string) {
-    return this.clientes().find(c => c.dni === documento || c.ruc === documento);
-  }
-
-  /**
-   * Registra o actualiza una venta para un cliente
-   */
-  registrarVenta(clienteData: { nombre: string; dni?: string; ruc?: string }, monto: number) {
-    let cliente = this.getClienteByDocumento(clienteData.dni || clienteData.ruc || '');
+  obtenerOCrearCliente(nombre: string, documento?: string): Cliente {
+    const clientes = this.store.clientes();
     
-    if (!cliente) {
-      // Crear nuevo cliente
-      cliente = {
-        id: this.clientes().length + 1,
-        nombre: clienteData.nombre,
-        dni: clienteData.dni,
-        ruc: clienteData.ruc,
-        total_gastado: monto,
+    if (documento) {
+      const existente = clientes.find(c => c.documento === documento);
+      if (existente) return existente;
+    }
+
+    const nuevoCliente: Cliente = {
+      id: this.store.nextId(clientes),
+      nombre,
+      documento,
+      total_gastado: 0,
+      num_compras: 0,
+      fecha_registro: this.store.nowStr(),
+      ultima_compra: '',
+      descuento_pct: 0
+    };
+
+    this.store.update({ 
+      clientes: [...clientes, nuevoCliente] 
+    });
+
+    return nuevoCliente;
+  }
+
+  /**
+   * Registrar compra del cliente
+   */
+  registrarCompra(clienteId: number, montoVenta: number) {
+    const clientes = this.store.clientes();
+    const cliente = clientes.find(c => c.id === clienteId);
+    
+    if (!cliente) return;
+
+    const clienteActualizado = {
+      ...cliente,
+      total_gastado: this.store.round2(cliente.total_gastado + montoVenta),
+      num_compras: cliente.num_compras + 1,
+      ultima_compra: this.store.nowStr(),
+      descuento_pct: this.calcularDescuento(cliente.total_gastado + montoVenta)
+    };
+
+    const clientesActualizados = clientes.map(c => 
+      c.id === clienteId ? clienteActualizado : c
+    );
+
+    this.store.update({ clientes: clientesActualizados });
+  }
+
+  /**
+   * Obtener descuento por lealtad
+   */
+  calcularDescuento(totalGastado: number): number {
+    if (totalGastado >= 5000) return 10;
+    if (totalGastado >= 2000) return 5;
+    if (totalGastado >= 1000) return 3;
+    return 0;
+  }
+
+  /**
+   * Clientes frecuentes (top 10)
+   */
+  clientesFrecuentes = computed(() => 
+    [...this.store.clientes()]
+      .sort((a, b) => b.total_gastado - a.total_gastado)
+      .slice(0, 10)
+  );
+
+  /**
+   * Clientes con descuento
+   */
+  clientesConDescuento = computed(() =>
+    this.store.clientes().filter(c => c.descuento_pct! > 0)
+  );
+
+  /**
+   * Total clientes registrados
+   */
+  totalClientes = computed(() => this.store.clientes().length);
+
+  /**
+   * Buscar cliente
+   */
+  buscarCliente(término: string): Cliente[] {
+    const t = término.toLowerCase();
+    return this.store.clientes().filter(c =>
+      c.nombre.toLowerCase().includes(t) ||
+      c.documento?.includes(término)
+    );
+  }
+
+  /**
+   * Exportar clientes a CSV
+   */
+  exportarCSV(): string {
+    const headers = ['Nombre', 'Documento', 'Total Gastado', 'N° Compras', 'Descuento %', 'Última Compra'];
+    const rows = this.store.clientes().map(c => [
+      c.nombre,
+      c.documento || '-',
+      `S/ ${c.total_gastado.toFixed(2)}`,
+      c.num_compras.toString(),
+      `${c.descuento_pct || 0}%`,
+      c.ultima_compra.slice(0, 10)
+    ]);
+
+    const csv = [headers, ...rows]
+      .map(row => row.map(col => `"${col}"`).join(','))
+      .join('\n');
+
+    return csv;
+  }
+}
         num_compras: 1,
         ultima_compra: new Date().toISOString(),
         descuento_aplicable: this.calcularDescuento(monto),

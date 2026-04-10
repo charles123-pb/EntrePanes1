@@ -130,6 +130,35 @@ export interface NubefactConfig {
   direccion: string;
 }
 
+// ── Clientes Frecuentes
+export interface Cliente {
+  id: number;
+  nombre: string;
+  telefono?: string;
+  email?: string;
+  documento?: string;
+  tipo_doc?: 'DNI' | 'RUC';
+  total_gastado: number;
+  num_compras: number;
+  fecha_registro: string;
+  ultima_compra: string;
+  descuento_pct?: number;
+}
+
+// ── Auditoría y Logs
+export interface AuditLog {
+  id: number;
+  fecha: string;
+  usuario: string;
+  accion: string;
+  entidad: string;
+  entidad_id: number;
+  objeto_anterior?: string;
+  objeto_nuevo?: string;
+  detalles?: string;
+  ip?: string;
+}
+
 export interface AppState {
   proveedores: Proveedor[];
   insumos: Insumo[];
@@ -138,6 +167,8 @@ export interface AppState {
   compras: Compra[];
   kardex: KardexEntry[];
   histNRUS: HistorialDeclaracion[];
+  clientes: Cliente[];
+  auditLogs: AuditLog[];
   categorias: string[];
 }
 

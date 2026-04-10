@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment';
 import {
   AppState, Proveedor, Insumo, Producto, Venta, Compra,
   KardexEntry, HistorialDeclaracion, NubefactConfig,
-  RerCalculo, TipoComprobante
+  RerCalculo, TipoComprobante, Cliente, AuditLog
 } from '../models/models';
 
 const STORAGE_KEY  = 'entrepanes_v5';
@@ -40,6 +40,8 @@ const DEFAULT_STATE: AppState = {
   compras: [],
   kardex: [],
   histNRUS: [],
+  clientes: [],
+  auditLogs: [],
   categorias: ['Sánguches', 'Tacos', 'Enchiladas', 'Papas', 'Combos', 'Bebidas'],
 };
 
@@ -64,6 +66,8 @@ export class AppStateService {
   readonly compras     = computed(() => this._state().compras);
   readonly kardex      = computed(() => this._state().kardex);
   readonly histNRUS    = computed(() => this._state().histNRUS);
+  readonly clientes    = computed(() => this._state().clientes);
+  readonly auditLogs   = computed(() => this._state().auditLogs);
   readonly categorias  = computed(() => this._state().categorias);
 
   readonly nubefactConfig = signal<NubefactConfig>(this._loadNubefact());
