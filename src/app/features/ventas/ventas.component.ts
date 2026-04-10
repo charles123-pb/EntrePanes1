@@ -17,6 +17,7 @@ import { PrintService }        from '../../core/services/print.service';
 import { CAT_ACCENT } from '../../core/constants/constants';
 import { Venta, VentaItem, TipoComprobante, MetodoPago } from '../../core/models/models';
 import { VentaClienteDialogComponent, DatosClienteResult } from './venta-cliente.dialog';
+import { PagoDigitalDialogComponent, PagoDigitalResult } from './pago-digital.dialog';
 
 @Component({
   selector: 'ep-ventas',
@@ -175,8 +176,7 @@ import { VentaClienteDialogComponent, DatosClienteResult } from './venta-cliente
               <mat-select [(ngModel)]="metodoPago">
                 <mat-option value="efectivo">Efectivo</mat-option>
                 <mat-option value="tarjeta">Tarjeta</mat-option>
-                <mat-option value="yape">Yape</mat-option>
-                <mat-option value="plin">Plin</mat-option>
+                <mat-option value="digital">💳 Digital (Yape/Plin)</mat-option>
               </mat-select>
             </mat-form-field>
           </div>
@@ -281,7 +281,7 @@ export class VentasComponent {
   orderItems = signal<VentaItem[]>([]);
   descuento  = 0;
   tipoComp: TipoComprobante = 'ticket';
-  metodoPago: MetodoPago    = 'efectivo';
+  metodoPago: MetodoPago | 'digital'    = 'efectivo';
   efectivoDado = 0;
   searchQ  = '';
   catFilter = '';
@@ -339,28 +339,54 @@ export class VentasComponent {
   }
 
   cobrar() {
-    // Si es boleta o factura, pedir datos del cliente
-    if (this.tipoComp !== 'ticket') {
-      const dialogRef = this.dialog.open(VentaClienteDialogComponent, {
+    // Si es pago digital (Yape/Plin), abrir modal para elegir
+    if (this.metodoPago === 'digital') {
+      const dialogRef = this.dialog.open(PagoDigitalDialogComponent, {
         width: '400px',
         maxWidth: '90vw',
         disableClose: true,
-        data: { tipoComp: this.tipoComp }
       });
 
-      dialogRef.afterClosed().subscribe((datosCliente: DatosClienteResult | null) => {
-        if (!datosCliente) return; // Canceló el diálogo
-        this.finalizarVenta(datosCliente);
+      dialogRef.afterClosed().subscribe((result: PagoDigitalResult | null) => {
+        if (!result) return; // Canceló el diálogo
+        this.metodoPago = result.metodo; // Actualizar método a yape o plin
+        // Si es boleta o factura, pedir datos del cliente
+        if (this.tipoComp !== 'ticket') {
+          this.abrirDialogoCliente();
+        } else {
+          this.finalizarVenta({});
+        }
       });
+      return;
+    }
+
+    // Si es boleta o factura, pedir datos del cliente
+    if (this.tipoComp !== 'ticket') {
+      this.abrirDialogoCliente();
     } else {
       this.finalizarVenta({});
     }
+  }
+
+  private abrirDialogoCliente() {
+    const dialogRef = this.dialog.open(VentaClienteDialogComponent, {
+      width: '400px',
+      maxWidth: '90vw',
+      disableClose: true,
+      data: { tipoComp: this.tipoComp }
+    });
+
+    dialogRef.afterClosed().subscribe((datosCliente: DatosClienteResult | null) => {
+      if (!datosCliente) return; // Canceló el diálogo
+      this.finalizarVenta(datosCliente);
+    });
   }
 
   private finalizarVenta(datosCliente: DatosClienteResult) {
     const cfg    = this.store.nubefactConfig();
     const serie  = this.tipoComp === 'factura' ? cfg.serie_factura : cfg.serie_boleta;
     const numComp = this.tipoComp !== 'ticket' ? this.store.nextNumComp(serie) : undefined;
+    const metodo = this.metodoPago as MetodoPago; // Garantizar que no sea 'digital'
     const venta: Venta = {
       id:       this.store.nextId(this.store.ventas()),
       fecha:    this.store.nowStr(),
@@ -368,7 +394,7 @@ export class VentasComponent {
       subtotal: this.subtotal(),
       descuento: this.descuento,
       total:    this.total(),
-      metodo:   this.metodoPago,
+      metodo:   metodo,
       tipo_comp: this.tipoComp,
       comprobante: numComp,
       sunat_estado: this.tipoComp !== 'ticket' ? 'pendiente' : '',
@@ -377,8 +403,8 @@ export class VentasComponent {
       cliente_dni: datosCliente.cliente_dni,
       cliente_ruc: datosCliente.cliente_ruc,
       cliente_razon: datosCliente.cliente_razon,
-      efectivo_dado: this.metodoPago === 'efectivo' ? this.efectivoDado : undefined,
-      vuelto:   this.metodoPago === 'efectivo' ? this.efectivoDado - this.total() : undefined,
+      efectivo_dado: metodo === 'efectivo' ? this.efectivoDado : undefined,
+      vuelto:   metodo === 'efectivo' ? this.efectivoDado - this.total() : undefined,
     };
     this.store.addVenta(venta);
     this.print.ticket(venta);

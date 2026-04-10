@@ -55,10 +55,29 @@ export class AuthService {
           console.log(`✓ Sesión restaurada: ${user.nombre}`);
         } else {
           localStorage.removeItem('currentUser');
+          this.autoLoginAdmin();
         }
       } catch (e) {
         localStorage.removeItem('currentUser');
+        this.autoLoginAdmin();
       }
+    } else {
+      // Auto-login como admin si no hay sesión
+      this.autoLoginAdmin();
+    }
+  }
+
+  /**
+   * Auto-login como usuario admin
+   */
+  private autoLoginAdmin() {
+    const allUsers = this.getAllUsers();
+    const adminUser = allUsers.find(u => u.rol === 'admin' && u.activo);
+    if (adminUser) {
+      this.currentUser.set(adminUser);
+      this.isAuthenticated.set(true);
+      localStorage.setItem('currentUser', JSON.stringify(adminUser));
+      console.log(`✓ Auto-login: ${adminUser.nombre} (${adminUser.rol})`);
     }
   }
 
