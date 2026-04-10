@@ -85,21 +85,16 @@ const ROLE_STYLES: Record<UserRole, {
         <!-- Estado: Ingresar PIN -->
         <div *ngIf="selectedUser()" class="bg-stone-900/60 border border-stone-800 rounded-lg p-8 space-y-6 backdrop-blur">
           <!-- Header con usuario seleccionado -->
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div [ngClass]="getIconBoxStyle(selectedUser()!.rol)">
-                <mat-icon [ngClass]="'text-2xl ' + getIconColor(selectedUser()!.rol)">
-                  {{ getIcon(selectedUser()!.rol) }}
-                </mat-icon>
-              </div>
-              <div>
-                <p class="text-xs text-stone-500">Ingresando como</p>
-                <h3 class="text-lg font-bold text-stone-100">{{ selectedUser()!.nombre }}</h3>
-              </div>
+          <div class="flex items-center gap-3">
+            <div [ngClass]="getIconBoxStyle(selectedUser()!.rol)">
+              <mat-icon [ngClass]="'text-2xl ' + getIconColor(selectedUser()!.rol)">
+                {{ getIcon(selectedUser()!.rol) }}
+              </mat-icon>
             </div>
-            <button mat-icon-button (click)="cancelLogin()" class="text-stone-500 hover:text-white">
-              <mat-icon>close</mat-icon>
-            </button>
+            <div>
+              <p class="text-xs text-stone-500">Ingresando como</p>
+              <h3 class="text-lg font-bold text-stone-100">{{ selectedUser()!.nombre }}</h3>
+            </div>
           </div>
 
           <!-- PIN Input -->
@@ -110,17 +105,11 @@ const ROLE_STYLES: Record<UserRole, {
             <mat-icon matPrefix>lock</mat-icon>
           </mat-form-field>
 
-          <!-- Botones -->
-          <div class="flex gap-3">
-            <button mat-flat-button class="flex-1" (click)="cancelLogin()">
-              <mat-icon>arrow_back</mat-icon>
-              ATRÁS
-            </button>
-            <button mat-flat-button color="primary" class="flex-1 !h-12" (click)="tryLogin()">
-              <mat-icon>check</mat-icon>
-              CONTINUAR
-            </button>
-          </div>
+          <!-- Botón Iniciar Sesión -->
+          <button mat-flat-button color="primary" class="w-full !h-12" (click)="tryLogin()">
+            <mat-icon>login</mat-icon>
+            INICIAR SESIÓN
+          </button>
         </div>
       </div>
     </div>
