@@ -5,12 +5,13 @@ import { MatCardModule }               from '@angular/material/card';
 import { MatIconModule }               from '@angular/material/icon';
 import { MatButtonModule }             from '@angular/material/button';
 import { MatDividerModule }            from '@angular/material/divider';
+import { BaseChartDirective }          from 'ng2-charts';
 import { AppStateService, MESES }      from '../../core/services/app-state.service';
 
 @Component({
   selector: 'ep-dashboard',
   standalone: true,
-  imports: [CommonModule, DecimalPipe, RouterLink, MatCardModule, MatIconModule, MatButtonModule, MatDividerModule],
+  imports: [CommonModule, DecimalPipe, RouterLink, MatCardModule, MatIconModule, MatButtonModule, MatDividerModule, BaseChartDirective],
   template: `
     <div class="space-y-6 animate-slide-up">
 
@@ -31,6 +32,42 @@ import { AppStateService, MESES }      from '../../core/services/app-state.servi
             }
           </div>
         }
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Ventas últimos 7 días -->
+        <div class="lg:col-span-2 ep-card p-4">
+          <h3 class="text-stone-300 font-black text-sm tracking-wider mb-4">📈 VENTAS ÚLTIMOS 7 DÍAS</h3>
+          <canvas baseChart
+            [type]="'line'"
+            [data]="weeklyChartData()"
+            [options]="weeklyChartOptions"
+            class="!max-h-64 !w-full">
+          </canvas>
+        </div>
+
+        <!-- Ventas por Método de Pago -->
+        <div class="ep-card p-4">
+          <h3 class="text-stone-300 font-black text-sm tracking-wider mb-4">💳 POR MÉTODO DE PAGO</h3>
+          <canvas baseChart
+            [type]="'doughnut'"
+            [data]="methodPieData()"
+            [options]="methodPieOptions"
+            class="!max-h-64">
+          </canvas>
+        </div>
+      </div>
+
+      <!-- Products Chart -->
+      <div class="ep-card p-4">
+        <h3 class="text-stone-300 font-black text-sm tracking-wider mb-4">⭐ TOP 5 PRODUCTOS MÁS VENDIDOS</h3>
+        <canvas baseChart
+          [type]="'bar'"
+          [data]="topProductsData()"
+          [options]="topProductsOptions"
+          class="!max-h-80 !w-full">
+        </canvas>
       </div>
 
       <!-- Content Row -->
@@ -195,6 +232,154 @@ export class DashboardComponent {
     const calc = this.store.calcularRER(totalVentas);
     return { totalVentas, ...calc };
   });
+
+  // ── Gráfico 1: Ventas por Método de Pago (Donut)
+  methodPieData = computed(() => {
+    const ventas = this.store.ventas().filter(v => v.estado === 'completada');
+    const metodos = { efectivo: 0, tarjeta: 0, yape: 0, plin: 0 };
+    ventas.forEach(v => {
+      if (metodos.hasOwnProperty(v.metodo)) {
+        metodos[v.metodo as keyof typeof metodos] += v.total;
+      }
+    });
+    return {
+      labels: ['Efectivo', 'Tarjeta', 'Yape', 'Plin'],
+      datasets: [{
+        data: [metodos.efectivo, metodos.tarjeta, metodos.yape, metodos.plin],
+        backgroundColor: ['#10b981', '#3b82f6', '#a855f7', '#ec4899'],
+        borderColor: ['#10b981', '#3b82f6', '#a855f7', '#ec4899'],
+      }]
+    };
+  });
+
+  methodPieOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          color: '#a8a29e',
+          font: { size: 12, weight: 'bold' as const }
+        }
+      }
+    }
+  } as any;
+
+  // ── Gráfico 2: Productos Top 5 (Bar)
+  topProductsData = computed(() => {
+    const itemsByProduct: Record<number, { nombre: string; cantidad: number }> = {};
+    this.store.ventas()
+      .filter(v => v.estado === 'completada')
+      .forEach(v => {
+        v.items.forEach(item => {
+          if (!itemsByProduct[item.id]) {
+            itemsByProduct[item.id] = { nombre: item.nombre, cantidad: 0 };
+          }
+          itemsByProduct[item.id].cantidad += item.cant;
+        });
+      });
+    
+    const sorted = Object.values(itemsByProduct)
+      .sort((a, b) => b.cantidad - a.cantidad)
+      .slice(0, 5);
+
+    return {
+      labels: sorted.map(p => p.nombre),
+      datasets: [{
+        label: 'Unidades Vendidas',
+        data: sorted.map(p => p.cantidad),
+        backgroundColor: '#f59e0b',
+        borderColor: '#d97706',
+        borderWidth: 1,
+      }]
+    };
+  });
+
+  topProductsOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        labels: { color: '#a8a29e', font: { size: 12, weight: 'bold' as const } }
+      }
+    },
+    scales: {
+      y: {
+        ticks: { color: '#a8a29e' },
+        grid: { color: '#44403c' }
+      },
+      x: {
+        ticks: { color: '#a8a29e' },
+        grid: { color: '#44403c' }
+      }
+    }
+  } as any;
+
+  // ── Gráfico 3: Ventas últimos 7 días (Line)
+  weeklyChartData = computed(() => {
+    const today = new Date();
+    const days: string[] = [];
+    const ventasByDay: Record<string, number> = {};
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      days.push(d.toLocaleDateString('es-PE', { weekday: 'short' }));
+      ventasByDay[dateStr] = 0;
+    }
+
+    this.store.ventas()
+      .filter(v => v.estado === 'completada')
+      .forEach(v => {
+        const dateStr = v.fecha.split('T')[0];
+        if (ventasByDay.hasOwnProperty(dateStr)) {
+          ventasByDay[dateStr] += v.total;
+        }
+      });
+
+    return {
+      labels: days,
+      datasets: [{
+        label: 'Ventas (S/)',
+        data: days.map((_, i) => {
+          const d = new Date(today);
+          d.setDate(d.getDate() - (6 - i));
+          return ventasByDay[d.toISOString().split('T')[0]];
+        }),
+        borderColor: '#fbbf24',
+        backgroundColor: 'rgba(251, 191, 36, 0.1)',
+        borderWidth: 2,
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: '#fbbf24',
+        pointBorderColor: '#f59e0b',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      }]
+    };
+  });
+
+  weeklyChartOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        labels: { color: '#a8a29e', font: { size: 12, weight: 'bold' as const } }
+      }
+    },
+    scales: {
+      y: {
+        ticks: { color: '#a8a29e' },
+        grid: { color: '#44403c' }
+      },
+      x: {
+        ticks: { color: '#a8a29e' },
+        grid: { color: '#44403c' }
+      }
+    }
+  } as any;
 
   metodoBadge(m: string) {
     const map: Record<string, string> = {
