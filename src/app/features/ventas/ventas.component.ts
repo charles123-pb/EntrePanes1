@@ -400,9 +400,6 @@ export class VentasComponent {
       sunat_estado: this.tipoComp !== 'ticket' ? 'pendiente' : '',
       estado:   'completada',
       cajero:   this.auth.currentUser()?.usuario ?? 'sistema',
-      cliente_dni: datosCliente.cliente_dni,
-      cliente_ruc: datosCliente.cliente_ruc,
-      cliente_razon: datosCliente.cliente_razon,
       efectivo_dado: metodo === 'efectivo' ? this.efectivoDado : undefined,
       vuelto:   metodo === 'efectivo' ? this.efectivoDado - this.total() : undefined,
     };

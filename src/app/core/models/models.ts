@@ -39,7 +39,6 @@ export interface VentaItem {
   cant: number;
   pu: number;
   sub: number;
-  nota?: string;
 }
 
 export type TipoComprobante = 'boleta' | 'factura' | 'ticket';
@@ -57,15 +56,11 @@ export interface Venta {
   tipo_comp: TipoComprobante;
   comprobante?: string;
   sunat_estado?: 'emitido' | 'pendiente' | 'error' | '';
-  pdf_url?: string;
   estado: EstadoVenta;
   cajero: string;
-  cliente_dni?: string;
-  cliente_ruc?: string;
-  cliente_razon?: string;
+  cliente_id?: number; // Relación con Cliente
   efectivo_dado?: number;
   vuelto?: number;
-  mesa?: string;
 }
 
 export interface CompraItem {
