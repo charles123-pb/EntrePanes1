@@ -1,10 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../core/services/auth.service';
@@ -45,10 +41,7 @@ const ROLE_STYLES: Record<UserRole, {
 @Component({
   selector: 'ep-login',
   standalone: true,
-  imports: [
-    CommonModule, FormsModule,
-    MatButtonModule, MatFormFieldModule, MatInputModule, MatIconModule
-  ],
+  imports: [CommonModule, MatIconModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-stone-950 via-stone-900 to-black flex items-center justify-center p-4">
       <div class="w-full max-w-2xl space-y-6">
@@ -97,34 +90,40 @@ const ROLE_STYLES: Record<UserRole, {
             </div>
           </div>
 
-          <!-- PIN Input -->
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>PIN (4 dígitos)</mat-label>
-            <input matInput type="password" [(ngModel)]="pin" (keyup.enter)="tryLogin()" 
-                   maxlength="4" placeholder="••••" autofocus />
-            <mat-icon matPrefix>lock</mat-icon>
-          </mat-form-field>
+          <!-- PIN Display -->
+          <div class="text-center">
+            <div class="text-5xl font-black tracking-[0.5em] text-amber-400 font-display">
+              {{ '•'.repeat(pin.length) }}{{ '○'.repeat(4 - pin.length) }}
+            </div>
+          </div>
 
-          <!-- Botón Iniciar Sesión -->
-          <button mat-flat-button color="primary" class="w-full !h-12" (click)="tryLogin()">
-            <mat-icon>login</mat-icon>
-            INICIAR SESIÓN
-          </button>
+          <!-- Teclado Numérico -->
+          <div class="grid grid-cols-3 gap-3">
+            @for (num of [1, 2, 3, 4, 5, 6, 7, 8, 9]; track num) {
+              <button 
+                (click)="addNumber(num)"
+                class="p-4 bg-stone-800 hover:bg-stone-700 border border-stone-700 rounded-lg text-2xl font-black text-stone-200 transition-all active:scale-95">
+                {{ num }}
+              </button>
+            }
+            <!-- Botón 0 (ancho completo) -->
+            <button 
+              (click)="addNumber(0)"
+              class="col-span-2 p-4 bg-stone-800 hover:bg-stone-700 border border-stone-700 rounded-lg text-2xl font-black text-stone-200 transition-all active:scale-95">
+              0
+            </button>
+            <!-- Botón Borrar -->
+            <button 
+              (click)="deleteLast()"
+              class="p-4 bg-red-900/60 hover:bg-red-900 border border-red-700 rounded-lg text-xl font-black text-red-400 transition-all active:scale-95">
+              <mat-icon>backspace</mat-icon>
+            </button>
+          </div>
         </div>
       </div>
     </div>
   `,
-  styles: [`
-    ::ng-deep .mdc-form-field {
-      width: 100%;
-    }
-    ::ng-deep .mdc-text-field__input {
-      color: #f5f5f4 !important;
-    }
-    ::ng-deep .mat-mdc-form-field-focus-overlay {
-      background-color: rgba(251, 146, 60, 0.1) !important;
-    }
-  `]
+  styles: []
 })
 export class LoginComponent {
   auth = inject(AuthService);
@@ -137,11 +136,6 @@ export class LoginComponent {
 
   selectUser(user: AppUser) {
     this.selectedUser.set(user);
-    this.pin = '';
-  }
-
-  cancelLogin() {
-    this.selectedUser.set(null);
     this.pin = '';
   }
 
@@ -162,25 +156,28 @@ export class LoginComponent {
     }
   }
 
-  getCardStyle(rol: any): string {
-    return ROLE_STYLES[rol as UserRole]?.card || '';
+  addNumber(num: number) {
+    if (this.pin.length < 4) {
+      this.pin += num.toString();
+      if (this.pin.length === 4) {
+        this.tryLogin();
+      }
+    }
   }
 
-  getIconBoxStyle(rol: any): string {
-    return ROLE_STYLES[rol as UserRole]?.iconBox || '';
+  deleteLast() {
+    this.pin = this.pin.slice(0, -1);
   }
 
-  getIconColor(rol: any): string {
-    return ROLE_STYLES[rol as UserRole]?.iconColor || '';
+  getStyle(rol: any, prop: keyof typeof ROLE_STYLES['admin']) {
+    return ROLE_STYLES[rol as UserRole]?.[prop] || '';
   }
 
-  getLabelColor(rol: any): string {
-    return ROLE_STYLES[rol as UserRole]?.labelColor || '';
-  }
-
-  getIcon(rol: any): string {
-    return ROLE_STYLES[rol as UserRole]?.icon || 'person';
-  }
+  getCardStyle(rol: any): string { return this.getStyle(rol, 'card'); }
+  getIconBoxStyle(rol: any): string { return this.getStyle(rol, 'iconBox'); }
+  getIconColor(rol: any): string { return this.getStyle(rol, 'iconColor'); }
+  getLabelColor(rol: any): string { return this.getStyle(rol, 'labelColor'); }
+  getIcon(rol: any): string { return ROLE_STYLES[rol as UserRole]?.icon || 'person'; }
 
   getLabel(rol: any): string {
     const labels: Record<UserRole, string> = {

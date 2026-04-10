@@ -1,32 +1,129 @@
-# EntrePanes
+# 🥪 EntrePanes - Sistema POS
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.7.
+Sistema de Punto de Venta (POS) moderno para sandwicherías, desarrollado con **Angular 21** + **Tailwind CSS** + **Material Design**.
 
-## Development server
+## ✨ Características
 
-To start a local development server, run:
+- ✅ **Autenticación por PIN** - Teclado numérico virtual para entrada segura
+- ✅ **Gestión de Ventas** - Punto de venta completo con múltiples comprobantes
+- ✅ **Gestión de Compras** - Inventario de proveedores e insumos
+- ✅ **Inventario** - Control de stock y kardex
+- ✅ **Admin** - Configuración de usuarios, SUNAT, Nubefact
+- ✅ **Reportes** - Historial de ventas y compras
+- ✅ **Diseño Responsive** - UI optimizado para escritorio y tablet táctil
 
+## 🚀 Inicio Rápido
+
+### Requisitos
+- Node.js 20+
+- npm o yarn
+
+### Instalación
 ```bash
-ng serve
+# Clonar repositorio
+git clone https://github.com/charles123-pb/EntrePanes1.git
+cd entre-panes
+
+# Instalar dependencias
+npm install
+
+# Iniciar servidor de desarrollo
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Abre http://localhost:4200 en tu navegador.
 
-## Code scaffolding
+## 🔗 Integración con Backend
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Para conectar con tu backend, edita `/src/environments/environment.ts`:
 
-```bash
-ng generate component component-name
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'http://tu-backend-url/api',  // ← Cambiar aquí
+  useMock: false
+};
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+**Ver [BACKEND_INTEGRATION.md](./BACKEND_INTEGRATION.md) para detalles de endpoints y modelos de datos.**
 
-```bash
-ng generate --help
+## 📁 Estructura del Proyecto
+
+```
+src/
+├── app/
+│   ├── core/
+│   │   ├── services/          # AuthService, ApiService, AppStateService
+│   │   ├── models/            # Tipos TypeScript
+│   │   └── constants/         # Datos por defecto
+│   ├── features/              # Componentes por página
+│   │   ├── login/
+│   │   ├── dashboard/
+│   │   ├── ventas/
+│   │   ├── compras/
+│   │   ├── inventario/
+│   │   └── ...
+│   ├── shared/                # Componentes reutilizables
+│   │   ├── components/
+│   │   └── pipes/
+│   └── app.routes.ts          # Rutas principales
+├── environments/              # Configuraciones por entorno
+└── styles.scss               # Estilos globales
 ```
 
-## Building
+## 🛠️ Scripts Disponibles
+
+```bash
+npm start          # Inicia servidor de desarrollo
+npm run build      # Compila para producción
+npm test           # Ejecuta tests
+npm run lint       # Verifica código
+```
+
+## 🎨 Tecnologías
+
+- **Angular 21.2.8** - Framework frontend
+- **TypeScript 5.6** - Lenguaje tipado
+- **Tailwind CSS 3** - Estilos utilitarios
+- **Angular Material 21.2.6** - Componentes UI
+- **RxJS** - Programación reactiva
+- **Signals** - Estado reactivo (Angular 21+)
+
+## 🔐 Autenticación
+
+- Usuarios predefinidos en `/src/app/core/constants/constants.ts`
+- PIN de 4 dígitos
+- Roles: Admin, Cajero, Cocinero
+- Sistema de caché en localStorage
+
+## 📊 Modelos de Datos
+
+Definidos en `/src/app/core/models/models.ts`:
+- Usuario, Producto, Venta, Compra
+- Proveedor, Insumo, Receta
+- Kardex, Historial SUNAT
+
+## 🚀 Despliegue
+
+```bash
+# Build para producción
+npm run build
+
+# La carpeta dist/ contiene los archivos listos para desplegar
+```
+
+## 📝 Licencia
+
+Privado / Propietario
+
+## 👤 Autor
+
+Charles PB - charles123-pb
+
+---
+
+**Estado:** ✅ Listo para integración con backend  
+**Última actualización:** Abril 9, 2026
 
 To build the project run:
 
