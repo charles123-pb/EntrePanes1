@@ -77,17 +77,30 @@ const ROLE_STYLES: Record<UserRole, {
 
         <!-- Estado: Ingresar PIN -->
         <div *ngIf="selectedUser()" class="bg-stone-900/60 border border-stone-800 rounded-lg p-8 space-y-6 backdrop-blur">
-          <!-- Header con usuario seleccionado -->
-          <div class="flex items-center gap-3">
-            <div [ngClass]="getIconBoxStyle(selectedUser()!.rol)">
-              <mat-icon [ngClass]="'text-2xl ' + getIconColor(selectedUser()!.rol)">
-                {{ getIcon(selectedUser()!.rol) }}
-              </mat-icon>
+          <!-- Header con botón atrás -->
+          <div class="flex items-center justify-between">
+            <button 
+              (click)="goBack()"
+              class="p-2 rounded-full text-stone-500 hover:text-amber-400 hover:bg-stone-800 transition-all"
+              title="Volver">
+              <mat-icon class="!text-2xl">arrow_back</mat-icon>
+            </button>
+            
+            <!-- Usuario seleccionado -->
+            <div class="flex items-center gap-3 flex-1 justify-center">
+              <div [ngClass]="getIconBoxStyle(selectedUser()!.rol)">
+                <mat-icon [ngClass]="'text-2xl ' + getIconColor(selectedUser()!.rol)">
+                  {{ getIcon(selectedUser()!.rol) }}
+                </mat-icon>
+              </div>
+              <div>
+                <p class="text-xs text-stone-500">Ingresando como</p>
+                <h3 class="text-lg font-bold text-stone-100">{{ selectedUser()!.nombre }}</h3>
+              </div>
             </div>
-            <div>
-              <p class="text-xs text-stone-500">Ingresando como</p>
-              <h3 class="text-lg font-bold text-stone-100">{{ selectedUser()!.nombre }}</h3>
-            </div>
+            
+            <!-- Placeholder para alinear -->
+            <div class="w-10"></div>
           </div>
 
           <!-- PIN Display -->
@@ -136,6 +149,11 @@ export class LoginComponent {
 
   selectUser(user: AppUser) {
     this.selectedUser.set(user);
+    this.pin = '';
+  }
+
+  goBack() {
+    this.selectedUser.set(null);
     this.pin = '';
   }
 

@@ -123,7 +123,77 @@ import { PrintService }       from '../../core/services/print.service';
         </div>
       </div>
 
-      <!-- Detalle de ventas -->
+      <!-- Gastos Extras del Día -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        
+        <!-- Agregar Gasto -->
+        <div class="ep-card">
+          <div class="px-4 py-3 border-b border-stone-800">
+            <span class="text-stone-300 font-black text-sm tracking-wider">➕ AGREGAR GASTO EXTRA</span>
+          </div>
+          <div class="p-4 space-y-3">
+            <mat-form-field appearance="outline" class="w-full ep-field-compact">
+              <mat-label>Descripción (ej: Electricidad, Agua, etc)</mat-label>
+              <input matInput [(ngModel)]="nuevoGastoDesc" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full ep-field-compact">
+              <mat-label>Monto (S/)</mat-label>
+              <input matInput type="number" [(ngModel)]="nuevoGastoMonto" min="0" step="0.01" />
+            </mat-form-field>
+            <button mat-flat-button color="primary" (click)="agregarGasto()" class="w-full">
+              <mat-icon>add_circle</mat-icon> Registrar Gasto
+            </button>
+          </div>
+        </div>
+
+        <!-- Lista de Gastos -->
+        <div class="ep-card">
+          <div class="px-4 py-3 border-b border-stone-800 flex justify-between items-center">
+            <span class="text-stone-300 font-black text-sm tracking-wider">💰 GASTOS DEL DÍA</span>
+            <span class="text-red-400 font-display text-lg">S/ {{ totalGastosExtras() | number:'1.2-2' }}</span>
+          </div>
+          <div class="p-3 max-h-52 overflow-y-auto space-y-2">
+            @for (gasto of gastosExtras(); track $index) {
+              <div class="flex items-center justify-between p-2 bg-stone-800/40 rounded-sm">
+                <div>
+                  <div class="text-stone-300 text-sm">{{ gasto.descripcion }}</div>
+                  <div class="text-stone-500 text-xs">S/ {{ gasto.monto | number:'1.2-2' }}</div>
+                </div>
+                <button mat-icon-button (click)="eliminarGasto($index)" class="text-stone-600 hover:text-red-400 transition">
+                  <mat-icon class="!text-lg">delete</mat-icon>
+                </button>
+              </div>
+            }
+            @empty {
+              <div class="text-center py-6 text-stone-600 text-sm">
+                <mat-icon class="!text-3xl block mx-auto mb-1">no_meals</mat-icon>
+                Sin gastos registrados
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Balance Final -->
+      <div class="ep-card border-amber-800/30 bg-stone-900/40 p-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div>
+            <div class="text-stone-500 text-xs font-black tracking-wider mb-2">INGRESOS</div>
+            <div class="font-display text-2xl text-amber-400">S/ {{ totalDia() | number:'1.2-2' }}</div>
+          </div>
+          <div>
+            <div class="text-stone-500 text-xs font-black tracking-wider mb-2">GASTOS</div>
+            <div class="font-display text-2xl text-red-400">−S/ {{ totalGastosExtras() | number:'1.2-2' }}</div>
+          </div>
+          <div class="col-span-2 sm:col-span-2">
+            <div class="text-stone-500 text-xs font-black tracking-wider mb-2">BALANCE NETO</div>
+            <div class="font-display text-3xl" [ngClass]="balanceNeto() >= 0 ? 'text-emerald-400' : 'text-red-400'">
+              S/ {{ balanceNeto() | number:'1.2-2' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="ep-card">
         <div class="px-4 py-3 border-b border-stone-800">
           <span class="text-stone-300 font-black text-sm tracking-wider">DETALLE DE VENTAS DEL DÍA</span>
@@ -175,6 +245,11 @@ export class CajaComponent {
   fondoInicial = 0;
   dateLabel    = new Date().toLocaleDateString('es-PE', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
 
+  // Gastos extras
+  gastosExtras = signal<{ descripcion: string; monto: number }[]>([]);
+  nuevoGastoDesc = '';
+  nuevoGastoMonto = 0;
+
   ventasDia = computed(() =>
     this.store.ventas().filter(v => v.fecha.startsWith(this.fechaFiltro))
   );
@@ -213,8 +288,35 @@ export class CajaComponent {
     }).filter(c => c.count > 0);
   });
 
+  // Gastos extras
+  totalGastosExtras = computed(() =>
+    this.gastosExtras().reduce((sum, g) => sum + g.monto, 0)
+  );
+
+  balanceNeto = computed(() =>
+    this.totalDia() - this.totalGastosExtras()
+  );
+
+  agregarGasto() {
+    if (!this.nuevoGastoDesc.trim() || this.nuevoGastoMonto <= 0) {
+      this.snack.open('❌ Completa descripción y monto', 'Cerrar', { duration: 2000 });
+      return;
+    }
+    this.gastosExtras.update(gastos => [
+      ...gastos,
+      { descripcion: this.nuevoGastoDesc, monto: this.nuevoGastoMonto }
+    ]);
+    this.snack.open(`✓ Gasto agregado`, '', { duration: 1500 });
+    this.nuevoGastoDesc = '';
+    this.nuevoGastoMonto = 0;
+  }
+
+  eliminarGasto(index: number) {
+    this.gastosExtras.update(gastos => gastos.filter((_, i) => i !== index));
+  }
+
   cerrarCaja() {
-    this.snack.open(`✓ Caja cerrada — Total: S/ ${this.totalDia().toFixed(2)}`, '', { duration: 3000 });
+    this.snack.open(`✓ Caja cerrada — Total: S/ ${this.balanceNeto().toFixed(2)}`, '', { duration: 3000 });
     this.print.reporteVentas(this.ventasDia(), `Cierre de Caja — ${this.fechaFiltro}`);
   }
 }

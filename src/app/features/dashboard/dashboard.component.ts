@@ -7,6 +7,7 @@ import { MatButtonModule }             from '@angular/material/button';
 import { MatDividerModule }            from '@angular/material/divider';
 import { BaseChartDirective }          from 'ng2-charts';
 import { AppStateService, MESES }      from '../../core/services/app-state.service';
+import { AnalisisService }             from '../../core/services/analisis.service';
 
 @Component({
   selector: 'ep-dashboard',
@@ -68,6 +69,60 @@ import { AppStateService, MESES }      from '../../core/services/app-state.servi
           [options]="topProductsOptions"
           class="!max-h-80 !w-full">
         </canvas>
+      </div>
+
+      <!-- Análisis de Costos y Rentabilidad -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        
+        <!-- Productos Críticos (Bajo Margen) -->
+        <div class="ep-card">
+          <div class="px-4 py-3 border-b border-stone-800 flex justify-between items-center">
+            <span class="text-stone-300 font-black text-sm tracking-wider">⚠️ PRODUCTOS CRÍTICOS</span>
+            <span class="text-red-400 text-xs font-black">(Margen < 20%)</span>
+          </div>
+          <div class="p-3 max-h-64 overflow-y-auto space-y-2">
+            @for (prod of analisis.productosCriticos(); track prod.id) {
+              <div class="flex items-center justify-between p-2 bg-red-900/20 border border-red-700/30 rounded-sm">
+                <div class="flex-1 min-w-0">
+                  <div class="text-stone-200 text-sm truncate">{{ prod.nombre }}</div>
+                  <div class="text-stone-500 text-xs">Margen: S/ {{prod.margen | number:'1.2-2'}} (~{{prod.margenPct.toFixed(1)}}%)</div>
+                </div>
+                <span class="text-red-400 font-black text-sm whitespace-nowrap ml-2">{{prod.margenPct.toFixed(1)}}%</span>
+              </div>
+            }
+            @empty {
+              <div class="text-center py-6 text-emerald-500 text-sm">
+                <mat-icon class="!text-3xl block mx-auto mb-1">check_circle</mat-icon>
+                Todos los productos tienen margen sano
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Productos Rentables (Top 5) -->
+        <div class="ep-card">
+          <div class="px-4 py-3 border-b border-stone-800 flex justify-between items-center">
+            <span class="text-stone-300 font-black text-sm tracking-wider">⭐ MÁS RENTABLES</span>
+            <span class="text-emerald-400 text-xs font-black">(Top 5)</span>
+          </div>
+          <div class="p-3 max-h-64 overflow-y-auto space-y-2">
+            @for (prod of analisis.productosRentables(); track prod.id) {
+              <div class="flex items-center justify-between p-2 bg-emerald-900/20 border border-emerald-700/30 rounded-sm">
+                <div class="flex-1 min-w-0">
+                  <div class="text-stone-200 text-sm truncate">{{ prod.nombre }}</div>
+                  <div class="text-stone-500 text-xs">Margen S/ {{prod.margen | number:'1.2-2'}} (~{{prod.margenPct.toFixed(1)}}%)</div>
+                </div>
+                <span class="text-emerald-400 font-black text-sm whitespace-nowrap ml-2">+S/ {{prod.margen | number:'1.2-2'}}</span>
+              </div>
+            }
+            @empty {
+              <div class="text-center py-6 text-stone-600 text-sm">
+                <mat-icon class="!text-3xl block mx-auto mb-1">trending_flat</mat-icon>
+                Sin datos de costoshoy
+              </div>
+            }
+          </div>
+        </div>
       </div>
 
       <!-- Content Row -->
@@ -188,7 +243,8 @@ import { AppStateService, MESES }      from '../../core/services/app-state.servi
   `,
 })
 export class DashboardComponent {
-  private store = inject(AppStateService);
+  store = inject(AppStateService);
+  analisis = inject(AnalisisService);
 
   todayLabel = new Date().toLocaleDateString('es-PE', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
 
@@ -215,11 +271,15 @@ export class DashboardComponent {
     const totalM  = ventas.reduce((s, v) => s + v.total, 0);
     const tickH   = ventasH.length;
     const prom    = tickH ? totalH / tickH : 0;
+    const gananciaH = this.analisis.gananciaNetaHoy();
+    const margenH = this.analisis.margenPromedioDia();
 
     return [
       { label: 'VENTAS HOY',    value: `S/ ${totalH.toFixed(2)}`,  sub: `${tickH} tickets`,           accent: 'border-l-amber-500',   valueClass: 'text-amber-400' },
-      { label: 'VENTAS MES',    value: `S/ ${totalM.toFixed(2)}`,  sub: `${ventas.length} tickets`,    accent: 'border-l-orange-500',  valueClass: 'text-orange-400' },
-      { label: 'TICKET PROM.',  value: `S/ ${prom.toFixed(2)}`,    sub: 'promedio por venta',          accent: 'border-l-blue-500',    valueClass: 'text-blue-400' },
+      { label: 'GANANCIA NETA', value: `S/ ${gananciaH.toFixed(2)}`, sub: `Ingresos - Costos`,        accent: gananciaH >= 0 ? 'border-l-emerald-500' : 'border-l-red-500',
+        valueClass: gananciaH >= 0 ? 'text-emerald-400' : 'text-red-400' },
+      { label: 'MARGEN HOY',    value: `${margenH.toFixed(1)}%`,    sub: 'promedio de rentabilidad',   accent: margenH >= 20 ? 'border-l-emerald-500' : 'border-l-amber-500',
+        valueClass: margenH >= 20 ? 'text-emerald-400' : 'text-amber-400' },
       { label: 'ALERTAS STOCK', value: `${this.store.stockAlerts()}`, sub: 'insumos bajo mínimo',      accent: this.store.stockAlerts() > 0 ? 'border-l-red-500' : 'border-l-emerald-500',
         valueClass: this.store.stockAlerts() > 0 ? 'text-red-400' : 'text-emerald-400' },
     ];

@@ -28,6 +28,7 @@ export interface Producto {
   nombre: string;
   cat: string;
   precio: number;
+  costo: number;
   receta: RecetaItem[];
   imagenUrl?: string;
 }
@@ -161,4 +162,44 @@ export interface NavItem {
   label: string;
   icon: string;
   roles?: string[];
+}
+
+// ── Nuevos modelos para features avanzadas
+
+export interface Cliente {
+  id: number;
+  nombre: string;
+  dni?: string;
+  ruc?: string;
+  telefono?: string;
+  email?: string;
+  direccion?: string;
+  total_gastado: number;
+  num_compras: number;
+  ultima_compra: string;
+  descuento_aplicable: number; // % de descuento por cliente frecuente
+  activo: boolean;
+}
+
+export type TipoAccion = 'login' | 'logout' | 'venta' | 'compra' | 'producto' | 'usuario' | 'inventario' | 'config';
+
+export interface AuditLog {
+  id: number;
+  fecha: string;
+  usuario: string;
+  accion: TipoAccion;
+  descripcion: string;
+  archivo_afectado: string;
+  detalles?: string;
+  ip?: string;
+}
+
+export interface ProductoCosto {
+  id: number;
+  nombre: string;
+  precio_venta: number;
+  costo_produccion: number;
+  margen_bruto: number;
+  margen_porcentaje: number;
+  ganancia_por_unidad: number;
 }
