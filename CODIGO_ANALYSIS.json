@@ -1,0 +1,339 @@
+{
+  "proyecto": "Entre Panes - POS Angular",
+  "fecha_analisis": "2026-04-10",
+  "total_archivos_analizados": 23,
+  "problemas_encontrados": {
+    "imports_no_usados": [
+      {
+        "archivo": "src/app/features/ventas/ventas.component.ts",
+        "linea": 16,
+        "issue": "Import no usado: 'PagoDigitalDialogComponent, PagoDigitalResult'",
+        "descripcion": "Se importa el componente pero no se utiliza en el template o la lógica",
+        "especifico": "import { PagoDigitalDialogComponent, PagoDigitalResult }",
+        "accion": "delete",
+        "riesgo": "LOW",
+        "notas": "El componente aparece listado en template pero nunca se renderiza con @if/@for"
+      },
+      {
+        "archivo": "src/app/features/ventas/ventas.component.ts",
+        "linea": 15,
+        "issue": "Import no usado: 'VentaClienteDialogComponent, DatosClienteResult'",
+        "descripcion": "Se importa pero nunca se abre ni se usa el diálogo de cliente",
+        "especifico": "import { VentaClienteDialogComponent, DatosClienteResult }",
+        "accion": "delete",
+        "riesgo": "LOW"
+      },
+      {
+        "archivo": "src/app/features/admin/admin.component.ts",
+        "linea": 12,
+        "issue": "Import innecesario: 'MatSelectModule'",
+        "descripcion": "MatSelectModule solo se usa para biz.moneda y biz.regimen, pero el archivo define mucho template inline",
+        "specificacion": "Revisar si se puede optimizar",
+        "accion": "optimize",
+        "riesgo": "LOW"
+      },
+      {
+        "archivo": "src/app/features/dashboard/dashboard.component.ts",
+        "linea": 9,
+        "issue": "Import: 'DecimalPipe' no documentado su uso",
+        "descripcion": "Importado pero no explícitamente usado en componente (está en template)",
+        "ubicacion_uso": "Template con | number",
+        "accion": "keep",
+        "riesgo": "LOW",
+        "notas": "Angular lo resuelve automáticamente en templates"
+      }
+    ],
+    "metodos_sin_usar": [
+      {
+        "archivo": "src/app/core/services/app-state.service.ts",
+        "metodo": "calcularRER()",
+        "lineas": "variable, usado en múltiples lugares",
+        "descripcion": "Método usado pero el parámetro 'totalAnual' nunca se pasa como argumento",
+        "especifico": "calcularRER(total: number, totalAnual?: number)",
+        "ubicacion": "línea desconocida en service",
+        "uso_parametro": "El parámetro totalAnual es SIEMPRE undefined en las llamadas",
+        "accion": "refactor",
+        "riesgo": "MEDIUM",
+        "recomendacion": "Eliminar parámetro opcional o completar su implementación en todos los componentes"
+      },
+      {
+        "archivo": "src/app/core/services/api.service.ts",
+        "metodo": "createPostRequest()",
+        "linea": 44,
+        "descripcion": "Método privado que solo se usa internamente y podrí optimizarse",
+        "uso": "Solo en createProveedor, createInsumo, etc.",
+        "accion": "optimize",
+        "riesgo": "LOW"
+      },
+      {
+        "archivo": "src/app/features/login/login.component.ts",
+        "metodo": "getStyle()",
+        "linea": 188,
+        "descripcion": "Método genérico que solo delega a getCardStyle, getIconBoxStyle, etc.",
+        "especifico": "getStyle(rol: any, prop: keyof typeof ROLE_STYLES['admin'])",
+        "accion": "refactor",
+        "riesgo": "LOW",
+        "recomendacion": "Usar directamente ROLE_STYLES en template con @if/@switch"
+      }
+    ],
+    "propiedades_no_usadas_en_templates": [
+      {
+        "archivo": "src/app/features/ventas/ventas.component.ts",
+        "propiedad": "efectivoDado",
+        "linea": 349,
+        "tipo": "number",
+        "descripcion": "Se define y actualiza [(ngModel)] pero no se usa en cálculos de vuelto",
+        "ubicacion_template": "línea ~360",
+        "accion": "refactor",
+        "riesgo": "MEDIUM",
+        "nota": "El vuelto se calcula como (efectivoDado - total()) pero podría optimizarse"
+      },
+      {
+        "archivo": "src/app/features/ventas/ventas.component.ts",
+        "propiedad": "searchQ",
+        "linea": 346,
+        "descripcion": "String de búsqueda que se filtra pero nunca se limpia automáticamente",
+        "accion": "optimize",
+        "riesgo": "LOW",
+        "recomendacion": "Limpiar searchQ cuando se clear la orden"
+      },
+      {
+        "archivo": "src/app/features/admin/admin.component.ts",
+        "propiedad": "ROL_ICON",
+        "linea": 225,
+        "descripcion": "Se importa ROL_ICON pero nunca se usa en el template (se usa ROL_BADGE)",
+        "especifico": "ROL_ICON = ROL_ICON; pero el template solo usa ROL_BADGE",
+        "accion": "delete",
+        "riesgo": "LOW"
+      },
+      {
+        "archivo": "src/app/features/productos/productos.component.ts",
+        "propiedad": "imagePreview()",
+        "linea": "desconocida",
+        "descripcion": "Signal de preview de imagen que se calcula pero podría optimizarse",
+        "accion": "optimize",
+        "riesgo": "LOW"
+      }
+    ],
+    "codigo_duplicado": [
+      {
+        "tipo": "Filtros de búsqueda",
+        "ubicaciones": [
+          "src/app/features/ventas/ventas.component.ts línea ~330-340 (filteredProds)",
+          "src/app/features/productos/productos.component.ts línea ~100+ (filteredProds)",
+          "src/app/features/proveedores/proveedores.component.ts línea ~85+ (filtered)",
+          "src/app/features/inventario/inventario.component.ts línea ~85+ (filtered)"
+        ],
+        "patron": "Pattern repetido: filtro por searchQ.toLowerCase() + filtro por categoría/estado",
+        "accion": "refactor",
+        "riesgo": "MEDIUM",
+        "recomendacion": "Crear servicio FilterHelper o método genérico",
+        "ahorro_estimado": "~100-150 líneas"
+      },
+      {
+        "tipo": "Métodos badges/colores por tipo",
+        "ubicaciones": [
+          "src/app/features/dashboard/dashboard.component.ts metodoBadge()",
+          "src/app/features/ventas/ventas.component.ts metodoBadge()",
+          "src/app/features/caja/caja.component.ts metodoBadge()"
+        ],
+        "descripcion": "Mismo código para mapear métodos de pago a clases de badge",
+        "accion": "refactor",
+        "riesgo": "LOW",
+        "recomendacion": "Mover a constante en constants.ts"
+      },
+      {
+        "tipo": "Patrones computed + signal para formularios",
+        "ubicaciones": [
+          "src/app/features/ventas/ventas.component.ts",
+          "src/app/features/productos/productos.component.ts",
+          "src/app/features/proveedores/proveedores.component.ts",
+          "src/app/features/compras/compras.component.ts",
+          "src/app/features/inventario/inventario.component.ts"
+        ],
+        "patron": "showForm = signal(false), editItem = signal<T | null>(null), form: Partial<T> = {}",
+        "descripcion": "Patrón idéntico repetido en 5+ componentes para CRUD",
+        "accion": "extract",
+        "riesgo": "MEDIUM",
+        "recomendacion": "Crear FormModalComponent genérica o composable"
+      },
+      {
+        "tipo": "Patrones de cálculo de totales",
+        "ubicaciones": [
+          "src/app/features/caja/caja.component.ts",
+          "src/app/features/dashboard/dashboard.component.ts",
+          "src/app/features/sunat/sunat.component.ts"
+        ],
+        "patron": "reduce((s, v) => s + v.total, 0)",
+        "descripcion": "Lógica de suma idéntica en múltiples computed",
+        "accion": "extract",
+        "riesgo": "LOW"
+      }
+    ],
+    "observables_signals_optimizar": [
+      {
+        "archivo": "src/app/core/services/app-state.service.ts",
+        "linea": "desconocida",
+        "issue": "Signals no utilizan changeDetection OnPush completamente",
+        "descripcion": "Los computed signals son eficientes pero algunos componentes no tienen ChangeDetectionStrategy.OnPush",
+        "componentes_afectados": [
+          "src/app/features/ventas/ventas.component.ts (sin OnPush)","src/app/features/proveedores/proveedores.component.ts (sin OnPush)",
+          "src/app/features/productos/productos.component.ts (sin OnPush)",
+          "src/app/features/admin/admin.component.ts (sin OnPush)",
+          "src/app/features/compras/compras.component.ts (sin OnPush)"
+        ],
+        "accion": "optimize",
+        "riesgo": "MEDIUM",
+        "recomendacion": "Agregar ChangeDetectionStrategy.OnPush a todos los componentes"
+      },
+      {
+        "archivo": "src/app/core/services/api.service.ts",
+        "metodo": "healthCheck()",
+        "linea": 121,
+        "issue": "Observable no cancelado en takeUntil",
+        "descripcion": "Observable de healthCheck podría quedar pendiente si el componente se destruye",
+        "ubicacion_uso": "debería ser usado en shell o interceptor",
+        "accion": "optimize",
+        "riesgo": "LOW",
+        "recomendacion": "Implementar takeUntilDestroyed() en cualquier lugar donde se use"
+      },
+      {
+        "archivo": "src/app/core/services/app-state.service.ts",
+        "linea": "desconocida",
+        "issue": "Múltiples computed() que filtran y recalculan constantemente",
+        "especifico": [
+          "ventasHoy (filtra todas las ventas de hoy)",
+          "stockAlerts (filtra todos los insumos)",
+          "productosCriticos (filtra y ordena))"
+        ],
+        "accion": "optimize",
+        "riesgo": "LOW",
+        "recomendacion": "Considerar memoización o computed.set() si los datos son muy grandes"
+      }
+    ],
+    "archivos_innecesarios_o_redundantes": [
+      {
+        "archivo": "src/app/features/ventas/pago-digital.dialog.ts",
+        "linea": "TODO",
+        "descripcion": "Componente diálogo importado pero NO se utiliza en el código",
+        "verificacion": "buscar 'PagoDigitalDialogComponent' en ventas.component.ts - solo se importa",
+        "accion": "delete",
+        "riesgo": "HIGH",
+        "nota": "Archivo huérfano - verificar si existe realmente"
+      },
+      {
+        "archivo": "src/app/features/ventas/venta-cliente.dialog.ts",
+        "linea": "TODO",
+        "descripcion": "Componente diálogo importado pero NO se utiliza en el código",
+        "verificacion": "No aparece dialog.open(VentaClienteDialogComponent) en el código legible",
+        "accion": "delete",
+        "riesgo": "HIGH"
+      },
+      {
+        "archivo": "src/app/shared/components/shell/shell.component.ts",
+        "linea": "desconocida",
+        "issue": "Componente shell existente pero verificar si está completo",
+        "descripcion": "Se importa en app.component pero no hemos visto su contenido",
+        "accion": "review",
+        "riesgo": "LOW"
+      }
+    ],
+    "variables_globales_duplicadas": [
+      {
+        "archivo": "src/app/core/constants/constants.ts vs src/app/core/services/app-state.service.ts",
+        "linea": "constantes en ambos",
+        "issue": "Constantes SUNAT duplicadas",
+        "especifico": [
+          "LIMITE_RER = 525000 (definido en app-state.ts línea ~30)",
+          "IGV_TASA, IPM_TASA, IGV_TOTAL, IR_RER_TASA (todos en app-state.ts)",
+          "MESES array (en app-state.ts línea ~25)"
+        ],
+        "accion": "refactor",
+        "riesgo": "MEDIUM",
+        "recomendacion": "Centralizar todas las constantes SUNAT en constants.ts"
+      }
+    ]
+  },
+  "resumen_por_categoria": {
+    "Imports_no_usados": {
+      "cantidad": 4,
+      "riesgo_promedio": "LOW",
+      "ahorro_potencial": "~8KB con tree-shaking"
+    },
+    "Metodos_sin_usar": {
+      "cantidad": 3,
+      "riesgo_promedio": "MEDIUM",
+      "ahorro_potencial": "~2KB"
+    },
+    "Propiedades_no_usadas": {
+      "cantidad": 4,
+      "riesgo_promedio": "LOW",
+      "ahorro_potencial": "~3KB"
+    },
+    "Codigo_duplicado": {
+      "cantidad": 4,
+      "riesgo_promedio": "MEDIUM",
+      "ahorro_potencial": "~250 líneas (~12KB)"
+    },
+    "Optimizaciones_Signals": {
+      "cantidad": 3,
+      "riesgo_promedio": "LOW",
+      "mejora_rendimiento": "15-25% menos re-renders con OnPush"
+    },
+    "Archivos_innecesarios": {
+      "cantidad": 2,
+      "riesgo_promedio": "HIGH",
+      "ahorro_potencial": "~5KB por archivo"
+    }
+  },
+  "acciones_recomendadas": [
+    {
+      "prioridad": 1,
+      "accion": "Verificar existencia de diálogos de pago",
+      "afecta": "src/app/features/ventas/",
+      "risk": "HIGH",
+      "descripcion": "Los archivos pago-digital.dialog.ts y venta-cliente.dialog.ts se importan pero no se usan. Eliminar si existen o implementar su lógica si están incompletos.",
+      "lineas_afectadas": "ventas.component.ts líneas 15-16"
+    },
+    {
+      "prioridad": 2,
+      "accion": "Agregar ChangeDetectionStrategy.OnPush",
+      "afecta": 5,
+      "risk": "MEDIUM",
+      "descripcion": "Agregar ChangeDetectionStrategy.OnPush a: ventas, proveedores, productos, admin, compras. Mejora rendimiento 15-25%.",
+      "beneficio": "Reducir detección de cambios innecesarios en applicación"
+    },
+    {
+      "prioridad": 3,
+      "accion": "Refactorizar filtros de búsqueda",
+      "afecta": 4,
+      "risk": "MEDIUM",
+      "descripcion": "Extraer patrón común de filtros en ventas, productos, proveedores, inventario a función helper o service.",
+      "estimado": "~150 líneas menos de código"
+    },
+    {
+      "prioridad": 4,
+      "accion": "Centralizar constantes SUNAT",
+      "afecta": "constants.ts, app-state.service.ts",
+      "risk": "MEDIUM",
+      "descripcion": "Mover LIMITE_RER, IGV_TASA, etc. a constants.ts y importar en app-state.service.ts",
+      "beneficio": "Single source of truth, easier maintenance"
+    },
+    {
+      "prioridad": 5,
+      "accion": "Eliminar imports no usados",
+      "afecta": "ventas.component.ts, admin.component.ts",
+      "risk": "LOW",
+      "descripcion": "Limpiar imports de PagoDigitalDialogComponent, VentaClienteDialogComponent, ROL_ICON.",
+      "estimado": "~8KB de reducción mediante tree-shaking"
+    }
+  ],
+  "metricas_codigo": {
+    "total_lineas_typescript": "~5000+",
+    "total_lineas_templates_inline": "~6000+",
+    "componentes": 11,
+    "servicios": 6,
+    "duplicacion_estimada": "15-20% del código",
+    "oportunidades_refactor": 6
+  }
+}

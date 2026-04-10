@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule }           from '@angular/common';
 import { FormsModule }            from '@angular/forms';
 import { MatButtonModule }        from '@angular/material/button';
@@ -14,6 +14,7 @@ import { USERS_DEFAULT, USERS_KEY, ROL_BADGE, ROL_ICON, UserRole, AppUser } from
 @Component({
   selector: 'ep-admin',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule,
             MatFormFieldModule, MatInputModule, MatSelectModule, MatSlideToggleModule],
   template: `

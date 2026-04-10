@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, DecimalPipe }            from '@angular/common';
 import { FormsModule }                          from '@angular/forms';
 import { MatButtonModule }     from '@angular/material/button';
@@ -22,6 +22,7 @@ import { PagoDigitalDialogComponent, PagoDigitalResult } from './pago-digital.di
 @Component({
   selector: 'ep-ventas',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule, DecimalPipe, FormsModule,
     MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule,
