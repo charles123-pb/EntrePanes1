@@ -1,4 +1,4 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, DecimalPipe }   from '@angular/common';
 import { RouterLink }                  from '@angular/router';
 import { MatCardModule }               from '@angular/material/card';
@@ -12,6 +12,7 @@ import { AnalisisService }             from '../../core/services/analisis.servic
 @Component({
   selector: 'ep-dashboard',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, DecimalPipe, RouterLink, MatCardModule, MatIconModule, MatButtonModule, MatDividerModule, BaseChartDirective],
   template: `
     <div class="space-y-6 animate-slide-up">
