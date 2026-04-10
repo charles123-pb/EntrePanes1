@@ -10,12 +10,15 @@ import { MatTabsModule }      from '@angular/material/tabs';
 import { MatSnackBar }        from '@angular/material/snack-bar';
 import { AppStateService, MESES, LIMITE_RER } from '../../core/services/app-state.service';
 import { HistorialDeclaracion } from '../../core/models/models';
+import { RegistroVentasComponent } from './registro-ventas.component';
+import { RegistroComprasComponent } from './registro-compras.component';
 
 @Component({
   selector: 'ep-sunat',
   standalone: true,
   imports: [CommonModule, DecimalPipe, FormsModule, MatButtonModule, MatIconModule,
-            MatFormFieldModule, MatInputModule, MatSelectModule, MatTabsModule],
+            MatFormFieldModule, MatInputModule, MatSelectModule, MatTabsModule,
+            RegistroVentasComponent, RegistroComprasComponent],
   template: `
     <div class="space-y-6 animate-slide-up">
 
@@ -253,6 +256,16 @@ import { HistorialDeclaracion } from '../../core/models/models';
               <mat-icon>save</mat-icon> Guardar Configuración
             </button>
           </div>
+        </mat-tab>
+
+        <!-- ── TAB: Registro Ventas (14.1) ── -->
+        <mat-tab label="📋 REGISTRO 14.1 (VENTAS)">
+          <ep-registro-ventas></ep-registro-ventas>
+        </mat-tab>
+
+        <!-- ── TAB: Registro Compras (8.1) ── -->
+        <mat-tab label="📋 REGISTRO 8.1 (COMPRAS)">
+          <ep-registro-compras></ep-registro-compras>
         </mat-tab>
 
       </mat-tab-group>
