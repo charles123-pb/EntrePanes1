@@ -130,19 +130,24 @@ export interface NubefactConfig {
   direccion: string;
 }
 
+// ── Tipo de acción para auditoría
+export type TipoAccion = 'LOGIN' | 'LOGOUT' | 'VENTA' | 'VENTA_ANULADA' | 'COMPRA' | 'PRECIO_ACTUALIZADO' | 'USUARIO' | 'INVENTARIO' | 'CONFIG';
+
 // ── Clientes Frecuentes
 export interface Cliente {
   id: number;
   nombre: string;
-  telefono?: string;
-  email?: string;
   documento?: string;
   tipo_doc?: 'DNI' | 'RUC';
+  telefono?: string;
+  email?: string;
+  direccion?: string;
   total_gastado: number;
   num_compras: number;
   fecha_registro: string;
   ultima_compra: string;
   descuento_pct?: number;
+  activo?: boolean;
 }
 
 // ── Auditoría y Logs
@@ -150,11 +155,11 @@ export interface AuditLog {
   id: number;
   fecha: string;
   usuario: string;
-  accion: string;
+  accion: TipoAccion;
   entidad: string;
   entidad_id: number;
-  objeto_anterior?: string;
-  objeto_nuevo?: string;
+  descripcion?: string;
+  archivo_afectado?: string;
   detalles?: string;
   ip?: string;
 }
@@ -193,36 +198,6 @@ export interface NavItem {
   label: string;
   icon: string;
   roles?: string[];
-}
-
-// ── Nuevos modelos para features avanzadas
-
-export interface Cliente {
-  id: number;
-  nombre: string;
-  dni?: string;
-  ruc?: string;
-  telefono?: string;
-  email?: string;
-  direccion?: string;
-  total_gastado: number;
-  num_compras: number;
-  ultima_compra: string;
-  descuento_aplicable: number; // % de descuento por cliente frecuente
-  activo: boolean;
-}
-
-export type TipoAccion = 'login' | 'logout' | 'venta' | 'compra' | 'producto' | 'usuario' | 'inventario' | 'config';
-
-export interface AuditLog {
-  id: number;
-  fecha: string;
-  usuario: string;
-  accion: TipoAccion;
-  descripcion: string;
-  archivo_afectado: string;
-  detalles?: string;
-  ip?: string;
 }
 
 export interface ProductoCosto {

@@ -1,7 +1,7 @@
 import { Injectable, inject, computed } from '@angular/core';
 import { AppStateService } from './app-state.service';
 import { AuthService } from './auth.service';
-import { AuditLog } from '../models/models';
+import { AuditLog, TipoAccion } from '../models/models';
 
 /**
  * Servicio de Auditoría - Registra todas las acciones importantes
@@ -15,7 +15,7 @@ export class AuditService {
   /**
    * Registra una acción en el log de auditoría
    */
-  registrar(accion: string, entidad: string, entidad_id: number, detalles?: string) {
+  registrar(accion: TipoAccion, entidad: string, entidad_id: number, detalles?: string) {
     const logs = this.store.auditLogs();
     const usuario = this.auth.currentUser()?.nombre || 'sistema';
 
