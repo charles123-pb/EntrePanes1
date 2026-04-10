@@ -85,7 +85,7 @@ export class AnalisisService {
   productosRentables = computed(() => {
     return this.productosConCosto()
       .filter(p => p.rentable)
-      .sort((a, b) => b.ganancia - a.ganancia)
+      .sort((a, b) => b.margen - a.margen)
       .slice(0, 5);
   });
 
