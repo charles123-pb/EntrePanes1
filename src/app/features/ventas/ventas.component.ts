@@ -12,9 +12,11 @@ import { MatDividerModule }    from '@angular/material/divider';
 import { MatSnackBar }         from '@angular/material/snack-bar';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AppStateService }     from '../../core/services/app-state.service';
+import { AuthService }         from '../../core/services/auth.service';
 import { PrintService }        from '../../core/services/print.service';
 import { CAT_ACCENT } from '../../core/constants/constants';
 import { Venta, VentaItem, TipoComprobante, MetodoPago } from '../../core/models/models';
+import { VentaClienteDialogComponent, DatosClienteResult } from './venta-cliente.dialog';
 
 @Component({
   selector: 'ep-ventas',
@@ -270,8 +272,10 @@ import { Venta, VentaItem, TipoComprobante, MetodoPago } from '../../core/models
 })
 export class VentasComponent {
   store = inject(AppStateService);
+  auth = inject(AuthService);
   print = inject(PrintService);
   private snack = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
 
   // Order state
   orderItems = signal<VentaItem[]>([]);
@@ -335,6 +339,25 @@ export class VentasComponent {
   }
 
   cobrar() {
+    // Si es boleta o factura, pedir datos del cliente
+    if (this.tipoComp !== 'ticket') {
+      const dialogRef = this.dialog.open(VentaClienteDialogComponent, {
+        width: '400px',
+        maxWidth: '90vw',
+        disableClose: true,
+        data: { tipoComp: this.tipoComp }
+      });
+
+      dialogRef.afterClosed().subscribe((datosCliente: DatosClienteResult | null) => {
+        if (!datosCliente) return; // Canceló el diálogo
+        this.finalizarVenta(datosCliente);
+      });
+    } else {
+      this.finalizarVenta({});
+    }
+  }
+
+  private finalizarVenta(datosCliente: DatosClienteResult) {
     const cfg    = this.store.nubefactConfig();
     const serie  = this.tipoComp === 'factura' ? cfg.serie_factura : cfg.serie_boleta;
     const numComp = this.tipoComp !== 'ticket' ? this.store.nextNumComp(serie) : undefined;
@@ -350,7 +373,10 @@ export class VentasComponent {
       comprobante: numComp,
       sunat_estado: this.tipoComp !== 'ticket' ? 'pendiente' : '',
       estado:   'completada',
-      cajero:   'cajero1',
+      cajero:   this.auth.currentUser()?.usuario ?? 'sistema',
+      cliente_dni: datosCliente.cliente_dni,
+      cliente_ruc: datosCliente.cliente_ruc,
+      cliente_razon: datosCliente.cliente_razon,
       efectivo_dado: this.metodoPago === 'efectivo' ? this.efectivoDado : undefined,
       vuelto:   this.metodoPago === 'efectivo' ? this.efectivoDado - this.total() : undefined,
     };

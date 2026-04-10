@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive }         from '@angular/router';
+import { Router, RouterLink, RouterLinkActive }         from '@angular/router';
 import { MatSidenavModule }    from '@angular/material/sidenav';
 import { MatToolbarModule }    from '@angular/material/toolbar';
 import { MatListModule }       from '@angular/material/list';
@@ -10,7 +10,8 @@ import { MatTooltipModule }    from '@angular/material/tooltip';
 import { MatDividerModule }    from '@angular/material/divider';
 import { CommonModule }        from '@angular/common';
 import { AppStateService }     from '../../../core/services/app-state.service';
-import { NAV }                 from '../../../core/constants/constants';
+import { AuthService }         from '../../../core/services/auth.service';
+import { NAV, ROL_ICON, ROL_BADGE } from '../../../core/constants/constants';
 
 @Component({
   selector: 'ep-shell',
@@ -35,13 +36,13 @@ import { NAV }                 from '../../../core/constants/constants';
         <div class="px-5 py-6 border-b border-stone-800">
           <div class="font-display text-3xl text-amber-400 leading-none">ENTRE</div>
           <div class="font-display text-3xl text-stone-300 leading-none">PANES</div>
-          <div class="text-stone-600 text-xs mt-1 font-mono tracking-wider">POS v3.7</div>
+          <div class="text-stone-600 text-xs mt-1 font-mono tracking-wider">POS </div>
         </div>
 
-        <!-- Nav links -->
+        <!-- Nav links (filtrado por rol) -->
         <nav class="flex-1 py-2 overflow-y-auto">
           <mat-nav-list>
-            @for (item of nav; track item.route) {
+            @for (item of filteredNav(); track item.route) {
               <a
                 mat-list-item
                 [routerLink]="item.route"
@@ -74,10 +75,21 @@ import { NAV }                 from '../../../core/constants/constants';
       <mat-sidenav-content class="bg-stone-950 flex flex-col min-h-screen">
 
         <!-- Topbar -->
-        <mat-toolbar class="bg-stone-900 border-b border-stone-800 !h-12 flex-shrink-0">
-          <button mat-icon-button (click)="sidenavOpen.update(v => !v)" class="text-stone-400 hover:text-amber-400">
-            <mat-icon>menu</mat-icon>
-          </button>
+        <mat-toolbar class="bg-stone-900 border-b border-stone-800 !h-12 flex-shrink-0 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <button mat-icon-button (click)="sidenavOpen.update(v => !v)" class="text-stone-400 hover:text-amber-400">
+              <mat-icon>menu</mat-icon>
+            </button>
+            
+            <!-- Usuario actual -->
+            @if (currentUser(); as user) {
+              <div class="flex items-center gap-2 text-xs">
+                <mat-icon class="!text-sm" [ngClass]="ROL_ICON[user.rol]">account_circle</mat-icon>
+                <span class="text-stone-300">{{ user.nombre }}</span>
+                <span [ngClass]="'text-xs px-1.5 py-0.5 rounded font-black ' + ROL_BADGE[user.rol]">{{ user.rol }}</span>
+              </div>
+            }
+          </div>
 
           <span class="flex-1"></span>
 
@@ -95,6 +107,11 @@ import { NAV }                 from '../../../core/constants/constants';
             <div class="text-stone-500 text-xs font-black tracking-widest">VENTAS HOY</div>
             <div class="text-amber-400 font-display text-xl leading-none">S/ {{ ventasHoy() | number:'1.2-2' }}</div>
           </div>
+
+          <!-- Logout -->
+          <button mat-icon-button (click)="logout()" class="text-stone-400 hover:text-red-400" matTooltip="Cerrar sesión">
+            <mat-icon>logout</mat-icon>
+          </button>
         </mat-toolbar>
 
         <!-- Page content -->
@@ -119,16 +136,39 @@ import { NAV }                 from '../../../core/constants/constants';
 })
 export class ShellComponent {
   private store = inject(AppStateService);
+  private auth = inject(AuthService);
+  private router = inject(Router);
 
-  nav        = NAV;
+  nav = NAV;
+  ROL_ICON = ROL_ICON;
+  ROL_BADGE = ROL_BADGE;
   sidenavOpen = signal(true);
+  currentUser = this.auth.currentUser;
   stockAlerts = this.store.stockAlerts;
-  ventasHoy   = this.store.ventasHoy;
+  ventasHoy = this.store.ventasHoy;
 
-  now = computed(() => {
-    return new Date().toLocaleString('es-PE', {
-      weekday: 'short', day: '2-digit', month: 'short',
-      hour: '2-digit', minute: '2-digit', hour12: false
+  filteredNav = computed(() => {
+    const user = this.currentUser();
+    if (!user) return [];
+    return this.nav.filter(item => {
+      if (!item.roles || item.roles.length === 0) return true;
+      return item.roles.includes(user.rol);
     });
   });
+
+  now = computed(() =>
+    new Date().toLocaleString('es-PE', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    })
+  );
+
+  logout() {
+    this.auth.logout();
+    this.router.navigateByUrl('/login');
+  }
 }

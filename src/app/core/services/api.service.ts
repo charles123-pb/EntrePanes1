@@ -52,20 +52,6 @@ export class ApiService {
     return this.createPostRequest<Proveedor>('/proveedores', proveedor);
   }
 
-  updateProveedor(id: number, proveedor: Partial<Proveedor>): Observable<Proveedor> {
-    if (environment.useMock) return of({ ...proveedor, id } as Proveedor);
-    return this.http.put<Proveedor>(`${environment.apiUrl}/proveedores/${id}`, proveedor).pipe(
-      catchError(err => this.handleError(err))
-    );
-  }
-
-  deleteProveedor(id: number): Observable<void> {
-    if (environment.useMock) return of(void 0);
-    return this.http.delete<void>(`${environment.apiUrl}/proveedores/${id}`).pipe(
-      catchError(err => this.handleError(err))
-    );
-  }
-
   // ── Insumos
   insumos(): Observable<Insumo[]> {
     if (environment.useMock) return of([] as Insumo[]);
@@ -77,13 +63,6 @@ export class ApiService {
     return this.createPostRequest<Insumo>('/insumos', insumo);
   }
 
-  updateInsumo(id: number, insumo: Partial<Insumo>): Observable<Insumo> {
-    if (environment.useMock) return of({ ...insumo, id } as Insumo);
-    return this.http.put<Insumo>(`${environment.apiUrl}/insumos/${id}`, insumo).pipe(
-      catchError(err => this.handleError(err))
-    );
-  }
-
   // ── Productos
   productos(): Observable<Producto[]> {
     if (environment.useMock) return of([] as Producto[]);
@@ -93,20 +72,6 @@ export class ApiService {
   createProducto(producto: Omit<Producto, 'id'>): Observable<Producto> {
     if (environment.useMock) return of({ ...producto, id: 1 } as Producto);
     return this.createPostRequest<Producto>('/productos', producto);
-  }
-
-  updateProducto(id: number, producto: Partial<Producto>): Observable<Producto> {
-    if (environment.useMock) return of({ ...producto, id } as Producto);
-    return this.http.put<Producto>(`${environment.apiUrl}/productos/${id}`, producto).pipe(
-      catchError(err => this.handleError(err))
-    );
-  }
-
-  deleteProducto(id: number): Observable<void> {
-    if (environment.useMock) return of(void 0);
-    return this.http.delete<void>(`${environment.apiUrl}/productos/${id}`).pipe(
-      catchError(err => this.handleError(err))
-    );
   }
 
   // ── Ventas
@@ -144,18 +109,6 @@ export class ApiService {
     formData.append('type', 'producto');
     return this.http.post<{ url: string; id: string }>(`${environment.apiUrl}/upload`, formData).pipe(
       timeout(this.API_TIMEOUT),
-      catchError(err => this.handleError(err))
-    );
-  }
-
-  getProductImageUrl(imageId: string): string {
-    if (!imageId) return '';
-    if (imageId.startsWith('http')) return imageId;
-    return `${environment.apiUrl}/images/productos/${imageId}`;
-  }
-
-  deleteProductImage(imageId: string): Observable<void> {
-    return this.http.delete<void>(`${environment.apiUrl}/images/productos/${imageId}`).pipe(
       catchError(err => this.handleError(err))
     );
   }

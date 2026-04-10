@@ -29,17 +29,17 @@ export const CAT_ACCENT = [
   { bar: 'bg-teal-500', ring: 'hover:border-teal-500' },
 ];
 
-// ── Navegación principal
+// ── Navegación principal (filtrada por rol)
 export const NAV: NavItem[] = [
-  { route: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
-  { route: '/ventas', label: 'Ventas', icon: 'shopping_cart' },
-  { route: '/caja', label: 'Cierre Caja', icon: 'lock' },
-  { route: '/inventario', label: 'Inventario', icon: 'home' },
-  { route: '/compras', label: 'Compras', icon: 'description' },
-  { route: '/productos', label: 'Productos', icon: 'star' },
-  { route: '/proveedores', label: 'Proveedores', icon: 'group' },
-  { route: '/sunat', label: 'SUNAT / RER', icon: 'receipt_long' },
-  { route: '/admin', label: 'Admin', icon: 'admin_panel_settings' },
+  { route: '/dashboard', label: 'Dashboard', icon: 'dashboard', roles: ['admin', 'cajero', 'cocinero'] },
+  { route: '/ventas', label: 'Ventas', icon: 'shopping_cart', roles: ['admin', 'cajero'] },
+  { route: '/caja', label: 'Cierre Caja', icon: 'lock', roles: ['admin', 'cajero'] },
+  { route: '/inventario', label: 'Inventario', icon: 'home', roles: ['admin', 'cocinero'] },
+  { route: '/compras', label: 'Compras', icon: 'description', roles: ['admin'] },
+  { route: '/productos', label: 'Productos', icon: 'star', roles: ['admin'] },
+  { route: '/proveedores', label: 'Proveedores', icon: 'group', roles: ['admin'] },
+  { route: '/sunat', label: 'SUNAT / RER', icon: 'receipt_long', roles: ['admin'] },
+  { route: '/admin', label: 'Admin', icon: 'admin_panel_settings', roles: ['admin'] },
 ];
 
 // ── Estilos por rol
@@ -50,9 +50,9 @@ export const ROL_BADGE: Record<UserRole, string> = {
 };
 
 export const ROL_ICON: Record<UserRole, string> = {
-  admin: 'admin_panel_settings',
-  cajero: 'credit_card',
-  cocinero: 'restaurant',
+  admin: 'text-amber-400',
+  cajero: 'text-blue-400',
+  cocinero: 'text-orange-400',
 };
 
 // ── Usuarios por defecto (para desarrollo)

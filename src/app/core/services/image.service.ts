@@ -54,62 +54,9 @@ export class ImageService {
   }
 
   /**
-   * Obtiene la URL completa de una imagen
-   */
-  getImageUrl(imagePath: string): string {
-    if (!imagePath) return '';
-    if (imagePath.startsWith('http')) return imagePath;
-    return `${environment.apiUrl}/images/${imagePath}`;
-  }
-
-  /**
-   * Obtiene la URL para una imagen de producto
-   */
-  getProductImageUrl(imagePath: string): string {
-    if (!imagePath) return '';
-    if (imagePath.startsWith('http')) return imagePath;
-    return `${environment.apiUrl}/images/productos/${imagePath}`;
-  }
-
-  /**
    * Elimina una imagen
    */
   deleteImage(imageId: string): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/images/${imageId}`);
   }
-
-  /**
-   * Obtiene metadatos de una imagen (tamaño, dimensiones, etc)
-   */
-  getImageMetadata(file: File): Promise<ImageMetadata> {
-    return new Promise((resolve) => {
-      const img = new Image();
-      const reader = new FileReader();
-      
-      reader.onload = (e) => {
-        img.onload = () => {
-          resolve({
-            fileName: file.name,
-            fileSize: file.size,
-            width: img.width,
-            height: img.height,
-            type: file.type,
-            lastModified: file.lastModified
-          });
-        };
-        img.src = e.target?.result as string;
-      };
-      
-      reader.readAsDataURL(file);
-    });
-  }
-}
-
-export interface ImageMetadata {
-  fileName: string;
-  fileSize: number;
-  width: number;
-  height: number;
-  type: string;
-  lastModified: number;
 }
